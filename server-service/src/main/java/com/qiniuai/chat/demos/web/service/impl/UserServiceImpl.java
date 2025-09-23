@@ -57,19 +57,12 @@ public class UserServiceImpl implements UserService, UserDetailsService {
      */
     @Override
     public ApiResult<?> loginByAccount(AccountLoginDTO loginDTO) {
-        String username = loginDTO.getUsername();
+        String phone = loginDTO.getPhone();
         String password = loginDTO.getPassword();
 
-        // 1. 参数校验
-        if (!StringUtils.hasText(username) || !StringUtils.hasText(password)) {
-            return ApiResult.fail("账号或密码不能为空");
-        }
-
-        // 2. 查询用户（支持用户名/手机号登录）
-         SysUser  user = userRepository.findByPhone(username);
-
-
-        // 3. 验证用户存在性和密码
+        // 查询用户（支持用户名/手机号登录）
+         SysUser user = userRepository.findByPhone(phone);
+        // 验证用户存在性和密码
         if (user == null) {
             return ApiResult.fail("用户不存在");
         }
@@ -79,8 +72,7 @@ public class UserServiceImpl implements UserService, UserDetailsService {
         if (user.getStatus() != 1) {
             return ApiResult.fail("账号已禁用，请联系管理员");
         }
-
-        // 4. 共用核心登录逻辑
+        // 核心登录逻辑
         return commonLoginProcess(user.getPhone(), user);
     }
 
