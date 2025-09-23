@@ -20,7 +20,6 @@
         <module>server-start</module>
         <module>server-common</module>
         <module>server-service</module>
-        <module>spring-ai-alibaba-playground</module>
     </modules>
 
     <dependencies>
