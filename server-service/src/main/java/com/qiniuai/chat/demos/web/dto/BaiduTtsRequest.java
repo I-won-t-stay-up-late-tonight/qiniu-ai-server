@@ -1,14 +1,18 @@
 package com.qiniuai.chat.demos.web.dto;
 
 import jakarta.validation.constraints.NotBlank;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
  * 文本转语音请求参数
  */
 @Data
 @Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class BaiduTtsRequest {
 
     /**
