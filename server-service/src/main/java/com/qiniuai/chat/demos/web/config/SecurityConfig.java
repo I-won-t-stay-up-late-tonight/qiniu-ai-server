@@ -1,6 +1,7 @@
 package com.qiniuai.chat.demos.web.config;
 
 import com.aliyuncs.utils.StringUtils;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hnit.server.common.Constants;
 import com.qiniuai.chat.demos.web.service.UserService;
 import jakarta.servlet.FilterChain;
@@ -16,11 +17,15 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.util.AntPathMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Spring Security 配置类
@@ -30,91 +35,108 @@ import java.io.IOException;
 @EnableWebSecurity
 public class SecurityConfig {
 
-    /**
-     * 配置安全过滤链
-     * 放行注册、登录等公开接口，其他接口需要认证
-     */
-//    @Bean
-//    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-//        http
-//                // 关闭CSRF（适用于前后端分离项目，若有需要可开启）
-//                .csrf(csrf -> csrf.disable())
-//                // 配置请求授权规则
-//                .authorizeHttpRequests(auth -> auth
-//                        // 放行注册接口
-//                        .requestMatchers("/api/user/register").permitAll()
-//                        // 放行手机号验证码登录接口
-//                        .requestMatchers("/api/user/send-code").permitAll()
-//                        .requestMatchers("/api/user/login/phone").permitAll()
-//                        // 放行账号密码登录接口
-//                        .requestMatchers("/api/user/login/account").permitAll()
-//                        // 其他所有请求需要认证
-//                        .anyRequest().authenticated()
-//                );
-//
-//        return http.build();
-//    }
+     @Autowired
+     private UserService userService;
 
+     @Autowired
+     private RedisTemplate<String, Object> redisTemplate;
 
-    @Autowired
-    private UserService userService;
-    @Autowired
-    private RedisTemplate<String, Object> redisTemplate;
+     private static final String[] PUBLIC_URLS = {
+     "/api/user/register",
+     "/api/user/send-code",
+     "/api/user/login/phone",
+     "/api/user/login/account"
+     };
 
-    /**
-     * Token 验证过滤器：解析请求头中的 Token，验证有效性并设置用户身份
-     */
+     // 路径匹配器（用于判断请求是否为公开接口）
+    private final AntPathMatcher pathMatcher = new AntPathMatcher();
+
     @Bean
     public OncePerRequestFilter tokenAuthFilter() {
         return new OncePerRequestFilter() {
             @Override
             protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
                     throws ServletException, IOException {
-                // 1. 从请求头中获取 Token
-                String token = request.getHeader(Constants.TOKEN_HEADER); // "Authorization"
-                if (token == null) {
+                // 1. 判断当前请求是否为公开接口，若是则直接放行
+                if (isPublicUrl(request.getRequestURI())) {
                     filterChain.doFilter(request, response);
                     return;
                 }
 
-                // 3. 验证 Token 有效性（从 Redis 中查询 Token 是否存在）
-                String redisKey = Constants.TOKEN_PREFIX + token; // "token:" + token
-                String phone = String.valueOf(redisTemplate.opsForValue().get(redisKey)) ;
-                if (StringUtils.isEmpty(phone)) { // Token 不存在或已过期
-                    filterChain.doFilter(request, response);
+                // 2. 非公开接口才需要校验 Token（以下逻辑不变）
+                String token = request.getHeader(Constants.TOKEN_HEADER);
+                if (StringUtils.isEmpty(token)) {
+                    sendErrorResponse(response, HttpServletResponse.SC_UNAUTHORIZED, "请先登录");
                     return;
                 }
 
-                // 4. 根据手机号查询用户信息（构建 Spring Security 所需的 UserDetails）
-                UserDetails userDetails = userService.loadUserByUsername(phone); // 需实现 UserDetailsService 接口
+                String redisKey = Constants.TOKEN_PREFIX + token;
+                String phone = String.valueOf(redisTemplate.opsForValue().get(redisKey));
+                if (StringUtils.isEmpty(phone)) {
+                    sendErrorResponse(response, HttpServletResponse.SC_UNAUTHORIZED, "Token已过期或无效，请重新登录");
+                    return;
+                }
 
-                // 5. 设置用户身份到 Security 上下文（后续接口可通过 SecurityContext 获取用户信息）
-                UsernamePasswordAuthenticationToken authentication =
-                        new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-                SecurityContextHolder.getContext().setAuthentication(authentication);
+                try {
+                    UserDetails userDetails = userService.loadUserByUsername(phone);
+                    if (!userDetails.isEnabled()) {
+                        sendErrorResponse(response, HttpServletResponse.SC_FORBIDDEN, "账号已被禁用，请联系管理员");
+                        return;
+                    }
 
-                // 6. 继续执行过滤器链
-                filterChain.doFilter(request, response);
+                    UsernamePasswordAuthenticationToken authentication =
+                            new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+                    SecurityContextHolder.getContext().setAuthentication(authentication);
+
+                    filterChain.doFilter(request, response);
+                } catch (UsernameNotFoundException e) {
+                    sendErrorResponse(response, HttpServletResponse.SC_UNAUTHORIZED, "用户不存在，请重新注册");
+                }
             }
         };
     }
 
     /**
-     * 配置安全过滤链：放行公开接口 + 加入 Token 过滤器
+     * 判断请求路径是否为公开接口
+     */
+    private boolean isPublicUrl(String requestUri) {
+        for (String publicUrl : PUBLIC_URLS) {
+            if (pathMatcher.match(publicUrl, requestUri)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * 发送JSON错误响应
+     */
+    private void sendErrorResponse(HttpServletResponse response, int status, String message) throws IOException {
+        response.setStatus(status);
+        response.setContentType("application/json;charset=UTF-8");
+
+        Map<String, Object> error = new HashMap<>();
+        error.put("code", status);
+        error.put("msg", message);
+        error.put("data", null);
+
+        new ObjectMapper().writeValue(response.getWriter(), error);
+    }
+
+    /**
+     * 安全过滤链配置
      */
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .csrf(csrf -> csrf.disable()) // 前后端分离项目关闭 CSRF
+                .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        // 放行公开接口（注册、登录、发送验证码）
-                        .requestMatchers("/api/user/register", "/api/user/send-code",
-                                "/api/user/login/phone", "/api/user/login/account").permitAll()
-                        // 其他所有接口需要认证
+                        .requestMatchers(PUBLIC_URLS).permitAll() // 公开接口放行
                         .anyRequest().authenticated()
                 )
-                // 加入 Token 验证过滤器（在 UsernamePasswordAuthenticationFilter 之前执行）
-                .addFilterBefore(tokenAuthFilter(), UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(tokenAuthFilter(), UsernamePasswordAuthenticationFilter.class)
+                .formLogin(form -> form.disable()) // 禁用默认登录页
+                .logout(logout -> logout.disable());
 
         return http.build();
     }
