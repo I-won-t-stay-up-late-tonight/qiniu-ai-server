@@ -1,4 +1,4 @@
-package com.qiniuai.chat.demos.web.entity;
+package com.qiniuai.chat.demos.web.entity.json;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;

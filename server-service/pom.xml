@@ -80,6 +80,28 @@
             <scope>test</scope>
         </dependency>
 
+
+        <!-- JPA 规范 API（必须，提供 @Entity、@Table 等注解） -->
+        <dependency>
+            <groupId>javax.persistence</groupId>
+            <artifactId>javax.persistence-api</artifactId>
+            <version>2.2</version>
+        </dependency>
+
+        <!-- Hibernate 核心（JPA 具体实现，负责将实体类映射到数据库表） -->
+        <dependency>
+            <groupId>org.hibernate</groupId>
+            <artifactId>hibernate-core</artifactId>
+            <version>5.6.14.Final</version> <!-- 稳定版本，可根据需求更新 -->
+        </dependency>
+
+        <!-- MySQL 驱动（如果还没加，用于连接 MySQL 数据库） -->
+        <dependency>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+            <version>8.0.33</version>
+        </dependency>
+
         <dependency>
             <groupId>com.google.code.gson</groupId>
             <artifactId>gson</artifactId>
@@ -100,6 +122,17 @@
                     <artifactId>gson</artifactId>
                 </exclusion>
             </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.mybatis.spring.boot</groupId>
+            <artifactId>mybatis-spring-boot-starter</artifactId>
+            <version>3.0.2</version>
+        </dependency>
+        <dependency>
+            <groupId>org.mybatis.spring.boot</groupId>
+            <artifactId>mybatis-spring-boot-starter-test</artifactId>
+            <version>3.0.2</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 

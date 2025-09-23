@@ -1,0 +1,10 @@
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/qiniuchat?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&useSSL=false
+    username: root  # 替换为你的用户名
+    password: 123456  # 替换为你的密码
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+mybatis:
+  mapper-locations: classpath:mapper/*.xml  # mapper.xml 文件路径（如果用 XML 写 SQL）
+  type-aliases-package: com.qiniuai.chat.demos.web.entity.pojo  # 实体类包路径

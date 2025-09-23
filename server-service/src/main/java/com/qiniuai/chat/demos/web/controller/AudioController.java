@@ -1,15 +1,11 @@
 package com.qiniuai.chat.demos.web.controller;
 
-import com.alibaba.dashscope.exception.NoApiKeyException;
-import com.alibaba.dashscope.exception.UploadFileException;
 import com.qiniuai.chat.demos.web.result.Result;
 import com.qiniuai.chat.demos.web.service.AudioService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-
-import java.io.IOException;
 
 /**
  * @ClassName AudioController
@@ -28,42 +24,53 @@ public class AudioController {
 
     @PostMapping("/audio2text")
     public Result<String> audioToText(
-            @Validated @RequestParam("audio") MultipartFile audio
-    ) {
+            @Validated @RequestParam("audio") MultipartFile audio) {
 
         if (audio.isEmpty()) {
             return Result.failed("No audio file provided");
         }
+        String res = audioService.audio2text(audio);
+        return res != null ? Result.success(res) : Result.failed(res);
 
-//        return Result.success("test ok");
-        try {
-            return Result.success(audioService.audio2text(audio));
-        } catch (NoApiKeyException e) {
-            throw new RuntimeException(e);
-        } catch (UploadFileException e) {
-            throw new RuntimeException(e);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
     }
 
     @PostMapping("/text2audio")
     public Result<String> textToAudio(
-            @Validated @RequestParam("content") String content
-    ) {
+            @Validated @RequestParam("content") String content) {
 
         if (content.isEmpty()) {
             return Result.failed("No content provided");
         }
 
-//        return Result.success("test ok");
+        String res = audioService.text2audio(content);
+        return res != null ? Result.success(res) : Result.failed(res);
 
-        try {
-            return Result.success(audioService.text2audio(content));
-        } catch (NoApiKeyException e) {
-            throw new RuntimeException(e);
-        } catch (UploadFileException e) {
-            throw new RuntimeException(e);
+    }
+
+    @PostMapping("/chat")
+    public Result<String> chat(
+            @Validated @RequestParam("content") String content, @Validated @RequestParam("id") long id
+    ) {
+
+        if (content.isEmpty()) {
+            return Result.failed("No chat provided");
         }
+
+        String res = audioService.chat(content, id);
+        return res != null ? Result.success(res) : Result.failed(res);
+    }
+
+    @PostMapping("/audioChat")
+    public Result<String> audioChat(
+            @Validated @RequestParam("audio") MultipartFile audio, @Validated @RequestParam("id") long id
+    ) {
+
+        if (audio.isEmpty()) {
+            return Result.failed("No audio provided");
+        }
+
+        String res = audioService.audioChat(audio, id);
+        return res != null ? Result.success(res) : Result.failed(res);
+
     }
 }

@@ -2,12 +2,7 @@ package com.qiniuai.chat.demos.web.service;
 
 //import com.alibaba.dashscope.exception.NoApiKeyException;
 //import com.alibaba.dashscope.exception.UploadFileException;
-import com.alibaba.dashscope.exception.ApiException;
-import com.alibaba.dashscope.exception.NoApiKeyException;
-import com.alibaba.dashscope.exception.UploadFileException;
 import org.springframework.web.multipart.MultipartFile;
-
-import java.io.IOException;
 
 /**
  * @ClassName audioService
@@ -20,7 +15,9 @@ import java.io.IOException;
 
 public interface AudioService {
 
-    String audio2text(MultipartFile audio) throws ApiException, NoApiKeyException, UploadFileException, IOException;
-    String text2audio(String content) throws ApiException, NoApiKeyException, UploadFileException ;
+    String audio2text(MultipartFile audio);
+    String text2audio(String content);
+    String chat(String content, long id);
+    String audioChat(MultipartFile audio, long id);
 
 }

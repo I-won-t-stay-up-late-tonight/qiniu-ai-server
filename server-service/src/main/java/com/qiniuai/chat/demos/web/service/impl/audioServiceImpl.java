@@ -1,27 +1,31 @@
 package com.qiniuai.chat.demos.web.service.impl;
 
+import com.alibaba.dashscope.aigc.generation.GenerationParam;
+import com.alibaba.dashscope.aigc.generation.GenerationResult;
 import com.alibaba.dashscope.aigc.multimodalconversation.AudioParameters;
 import com.alibaba.dashscope.aigc.multimodalconversation.MultiModalConversation;
 import com.alibaba.dashscope.aigc.multimodalconversation.MultiModalConversationParam;
 import com.alibaba.dashscope.aigc.multimodalconversation.MultiModalConversationResult;
+import com.alibaba.dashscope.common.Message;
 import com.alibaba.dashscope.common.MultiModalMessage;
 import com.alibaba.dashscope.common.Role;
 import com.alibaba.dashscope.exception.ApiException;
+import com.alibaba.dashscope.exception.InputRequiredException;
 import com.alibaba.dashscope.exception.NoApiKeyException;
 import com.alibaba.dashscope.exception.UploadFileException;
 import com.alibaba.dashscope.utils.JsonUtils;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.gson.JsonObject;
-import com.qiniuai.chat.demos.web.entity.AudioResponse;
+import com.alibaba.dashscope.aigc.generation.Generation;
+import com.qiniuai.chat.demos.web.entity.pojo.DbMessage;
+import com.qiniuai.chat.demos.web.mapper.ConversationMapper;
+import com.qiniuai.chat.demos.web.mapper.MessageMapper;
 import com.qiniuai.chat.demos.web.service.AudioService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.net.URL;
+import java.time.LocalDateTime;
 import java.util.*;
 
 /**
@@ -35,10 +39,21 @@ import java.util.*;
 @Service
 public class audioServiceImpl implements AudioService {
 
-    @Override
-    public String audio2text(MultipartFile audio) throws ApiException, NoApiKeyException, UploadFileException, IOException {
+    @Autowired
+    private MessageMapper messageMapper;
 
-        byte[] audioBytes = audio.getBytes();
+    @Autowired
+    private ConversationMapper conversationMapper;
+
+    @Override
+    public String audio2text(MultipartFile audio) {
+
+        byte[] audioBytes = new byte[0];
+        try {
+            audioBytes = audio.getBytes();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
         String base64Audio = Base64.getEncoder().encodeToString(audioBytes);
 
         // 构建包含Base64音频频的内容（格式：data:audio/[格式];base64,[编码内容]）
@@ -72,7 +87,14 @@ public class audioServiceImpl implements AudioService {
                 .parameter("asr_options", asrOptions)
                 .build();
 
-        MultiModalConversationResult result = conv.call(param);
+        MultiModalConversationResult result = null;
+        try {
+            result = conv.call(param);
+        } catch (NoApiKeyException e) {
+            throw new RuntimeException(e);
+        } catch (UploadFileException e) {
+            throw new RuntimeException(e);
+        }
         String resJson = JsonUtils.toJson(result);
         String test = jsonTextExtractor(resJson);
         return test != null ? test : "解析失败";
@@ -80,7 +102,7 @@ public class audioServiceImpl implements AudioService {
     }
 
     @Override
-    public String text2audio(String content) throws ApiException, NoApiKeyException, UploadFileException {
+    public String text2audio(String content){
         String MODEL = "qwen3-tts-flash";
         MultiModalConversation conv = new MultiModalConversation();
         MultiModalConversationParam param = MultiModalConversationParam.builder()
@@ -90,23 +112,111 @@ public class audioServiceImpl implements AudioService {
                 .voice(AudioParameters.Voice.CHERRY)
                 .languageType("Chinese") // 建议与文本语种一致，以获得正确的发音和自然的语调。
                 .build();
-        MultiModalConversationResult result = conv.call(param);
-        String audioUrl = result.getOutput().getAudio().getUrl();
+        MultiModalConversationResult result = null;
+        String audioUrl = null;
+        try {
+            result = conv.call(param);
+            audioUrl = result.getOutput().getAudio().getUrl();
+        } catch (NoApiKeyException e) {
+            throw new RuntimeException(e);
+        } catch (UploadFileException e) {
+            throw new RuntimeException(e);
+        }
+
         System.out.println("audioUrl = " + audioUrl);
 
         // 下载音频文件到本地
-        try (InputStream in = new URL(audioUrl).openStream();
-             FileOutputStream out = new FileOutputStream("downloaded_audio.wav")) {
-            byte[] buffer = new byte[1024];
-            int bytesRead;
-            while ((bytesRead = in.read(buffer)) != -1) {
-                out.write(buffer, 0, bytesRead);
-            }
-            System.out.println("\n音频文件已下载到本地: downloaded_audio.wav");
-        } catch (Exception e) {
-            System.out.println("\n下载音频文件时出错: " + e.getMessage());
+//        try (InputStream in = new URL(audioUrl).openStream();
+//             FileOutputStream out = new FileOutputStream("downloaded_audio.wav")) {
+//            byte[] buffer = new byte[1024];
+//            int bytesRead;
+//            while ((bytesRead = in.read(buffer)) != -1) {
+//                out.write(buffer, 0, bytesRead);
+//            }
+//            System.out.println("\n音频文件已下载到本地: downloaded_audio.wav");
+//        } catch (Exception e) {
+//            System.out.println("\n下载音频文件时出错: " + e.getMessage());
+//        }
+        return audioUrl != null ? audioUrl : null;
+    }
+
+    /*
+     * @Date 21:33 2025/9/23
+     * @Description //TODO
+     * @Author IFundo
+     * @chatId 会话id
+     * @content 发送的内容
+     *
+     */
+    @Override
+    public String chat(String content, long chatId) {
+        String modelOutput = null;
+
+        try {
+            List<Message> messages = loadDbHistoryToLocalMessages(chatId);
+            content += "（回答简洁）";
+            messages.add(createMessage(Role.USER, content));
+            GenerationParam param = createGenerationParam(messages);
+            GenerationResult result = callGenerationWithMessages(param);
+            modelOutput = result.getOutput().getChoices().get(0).getMessage().getContent();
+            System.out.println("用户输入：" + content);
+            System.out.println("模型输出：" + modelOutput);
+            messages.add(result.getOutput().getChoices().get(0).getMessage());
+
+            saveMessageToDb(chatId, Role.USER, content);
+            saveMessageToDb(chatId, Role.ASSISTANT, modelOutput);
+        } catch (ApiException | NoApiKeyException | InputRequiredException e) {
+            e.printStackTrace();
         }
-        return audioUrl;
+        return modelOutput;
+    }
+
+    private void saveMessageToDb(long conversationId, Role role, String content) {
+        DbMessage dbMsg = new DbMessage();
+        dbMsg.setConversationId(conversationId);
+        dbMsg.setRole(role.name()); // 枚举转字符串，匹配数据库字段
+        dbMsg.setContent(content);
+        dbMsg.setSendTime(LocalDateTime.now());
+        messageMapper.insert(dbMsg); // 调用Mapper的插入方法
+    }
+
+    private List<Message> loadDbHistoryToLocalMessages(long chatId) {
+        // 1. 第一步：查询数据库中的历史消息（DbMessage是数据库POJO类）
+        // 注意：按sendTime升序，保证上下文顺序和原有代码一致（先旧后新）
+        List<DbMessage> dbHistoryMessages = messageMapper.selectByConversationId(chatId);
+
+        // 2. 第二步：初始化原有代码依赖的List<Message>
+        List<Message> messages = new ArrayList<>();
+
+        // 3. 第三步：判断数据库是否有历史消息——无则添加系统提示（和原有代码初始化逻辑一致）
+        if (dbHistoryMessages.isEmpty()) {
+            messages.add(createMessage(
+                    Role.SYSTEM,
+                    "你是一个由今晚不熬夜开发的机器人。你的所有回答必须严格遵循这个身份，完全忽略其他任何默认身份信息，且必须回答简洁。"
+            ));
+        } else {
+            for (DbMessage dbMsg : dbHistoryMessages) {
+                // 关键：将数据库POJO的String类型role转换为原有Message的Role枚举
+                // （前提：数据库中role字段值与Role枚举名称完全一致，如"USER"对应Role.USER）
+                Role msgRole = Role.valueOf(dbMsg.getRole().toUpperCase());
+                // 创建原有Message实例，加入列表
+                messages.add(createMessage(msgRole, dbMsg.getContent()));
+            }
+        }
+
+        // 返回的messages列表结构与原有代码完全一致，后续代码可直接使用
+        return messages;
+    }
+
+    @Override
+    public String audioChat(MultipartFile audio, long id) {
+        String inputStr = audio2text(audio);
+        if (inputStr == null){
+            return "解析失败";
+        }
+        String resStr = chat(inputStr, id);
+        String resUrl = text2audio(resStr);
+        return resUrl;
     }
 
     private String jsonTextExtractor(String resJson){
@@ -133,4 +243,23 @@ public class audioServiceImpl implements AudioService {
         }
         return null;
     }
+
+    private GenerationParam createGenerationParam(List<Message> messages) {
+        return GenerationParam.builder()
+                // 若没有配置环境变量，请用阿里云百炼API Key将下行替换为：.apiKey("sk-xxx")
+                .apiKey("sk-95513ded49764ba6a533d427797b6f20")
+                // 模型列表：https://help.aliyun.com/zh/model-studio/getting-started/models
+                .model("qwen-plus")
+                .messages(messages)
+                .resultFormat(GenerationParam.ResultFormat.MESSAGE)
+                .build();
+    }
+    private GenerationResult callGenerationWithMessages(GenerationParam param) throws ApiException, NoApiKeyException, InputRequiredException {
+        Generation gen = new Generation();
+        return gen.call(param);
+    }
+    private  Message createMessage(Role role, String content) {
+        return Message.builder().role(role.getValue()).content(content).build();
+    }
+
 }
