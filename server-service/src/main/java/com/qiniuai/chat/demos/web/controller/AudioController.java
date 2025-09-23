@@ -1,6 +1,6 @@
 package com.qiniuai.chat.demos.web.controller;
 
-import com.qiniuai.chat.demos.web.result.Result;
+import com.hnit.server.dto.Result;
 import com.qiniuai.chat.demos.web.service.AudioService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;

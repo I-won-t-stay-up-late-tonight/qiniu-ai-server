@@ -1,4 +1,4 @@
-package com.qiniuai.chat.demos.web.dto;
+package com.hnit.server.dto;
 
 import lombok.Data;
 

@@ -1,4 +1,4 @@
-package com.qiniuai.chat.demos.web.result;
+package com.hnit.server.dto;
 
 /**
  * @ClassName Result

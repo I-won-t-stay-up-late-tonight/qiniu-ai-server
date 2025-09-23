@@ -1,6 +1,6 @@
 package com.qiniuai.chat.demos.web.controller;
 
-import com.qiniuai.chat.demos.web.dto.ApiResult;
+import com.hnit.server.dto.ApiResult;
 import com.qiniuai.chat.demos.web.dto.BaiduTtsRequest;
 import com.qiniuai.chat.demos.web.dto.BaiduTtsResponse;
 import com.qiniuai.chat.demos.web.service.TtsService;
@@ -91,7 +91,7 @@ public class TtsController {
     }
 
     /**
-     * 测试接口：将文本转换为语音并保存到本地
+     * 将文本转换为语音并保存到本地
      */
     @PostMapping("/text-to-audio/save-local")
     @Operation(summary = "测试接口：文本转语音并保存到本地", description = "将文本转换为语音并保存到本地服务器")

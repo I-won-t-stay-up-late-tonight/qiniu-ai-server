@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.qiniuai.chat.demos.web.controller;
+package com.qiniuai.chat.demos.web.entity;
 
 /**
  * @author <a href="mailto:chenxilzx1@gmail.com">theonefx</a>
