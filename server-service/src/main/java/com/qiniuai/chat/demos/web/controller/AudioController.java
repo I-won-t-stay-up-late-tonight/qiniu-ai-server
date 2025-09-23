@@ -1,6 +1,6 @@
 package com.qiniuai.chat.demos.web.controller;
 
-import com.hnit.server.dto.Result;
+import com.hnit.server.dto.ApiResult;
 import com.qiniuai.chat.demos.web.service.AudioService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
@@ -23,54 +23,54 @@ public class AudioController {
     private AudioService audioService;
 
     @PostMapping("/audio2text")
-    public Result<String> audioToText(
+    public ApiResult<String> audioToText(
             @Validated @RequestParam("audio") MultipartFile audio) {
 
         if (audio.isEmpty()) {
-            return Result.failed("No audio file provided");
+            return ApiResult.fail("No audio file provided");
         }
         String res = audioService.audio2text(audio);
-        return res != null ? Result.success(res) : Result.failed(res);
+        return res != null ? ApiResult.success(res) : ApiResult.fail(res);
 
     }
 
     @PostMapping("/text2audio")
-    public Result<String> textToAudio(
+    public ApiResult<String> textToAudio(
             @Validated @RequestParam("content") String content) {
 
         if (content.isEmpty()) {
-            return Result.failed("No content provided");
+            return ApiResult.fail("No content provided");
         }
 
         String res = audioService.text2audio(content);
-        return res != null ? Result.success(res) : Result.failed(res);
+        return res != null ? ApiResult.success(res) : ApiResult.fail(res);
 
     }
 
     @PostMapping("/chat")
-    public Result<String> chat(
+    public ApiResult<String> chat(
             @Validated @RequestParam("content") String content, @Validated @RequestParam("id") long id
     ) {
 
         if (content.isEmpty()) {
-            return Result.failed("No chat provided");
+            return ApiResult.fail("No chat provided");
         }
 
         String res = audioService.chat(content, id);
-        return res != null ? Result.success(res) : Result.failed(res);
+        return res != null ? ApiResult.success(res) : ApiResult.fail(res);
     }
 
     @PostMapping("/audioChat")
-    public Result<String> audioChat(
+    public ApiResult<String> audioChat(
             @Validated @RequestParam("audio") MultipartFile audio, @Validated @RequestParam("id") long id
     ) {
 
         if (audio.isEmpty()) {
-            return Result.failed("No audio provided");
+            return ApiResult.fail("No audio provided");
         }
 
         String res = audioService.audioChat(audio, id);
-        return res != null ? Result.success(res) : Result.failed(res);
+        return res != null ? ApiResult.success(res) : ApiResult.fail(res);
 
     }
 }
