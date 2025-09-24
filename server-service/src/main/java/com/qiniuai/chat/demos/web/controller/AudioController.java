@@ -22,6 +22,12 @@ public class AudioController {
     @Autowired
     private AudioService audioService;
 
+    /*
+     * @Date 09:58 2025/9/24
+     * @Description //TODO
+     * @Author IFundo
+     * @ audio 上传的音频文件
+     */
     @PostMapping("/audio2text")
     public ApiResult<String> audioToText(
             @Validated @RequestParam("audio") MultipartFile audio) {
@@ -33,6 +39,12 @@ public class AudioController {
         return res != null ? ApiResult.success(res) : ApiResult.fail(res);
 
     }
+    /*
+     * @Date 09:58 2025/9/24
+     * @Description //TODO
+     * @Author IFundo
+     * @content 用户发送的内容
+     */
 
     @PostMapping("/text2audio")
     public ApiResult<String> textToAudio(
@@ -46,6 +58,13 @@ public class AudioController {
         return res != null ? ApiResult.success(res) : ApiResult.fail(res);
 
     }
+    /*
+     * @Date 09:36 2025/9/24
+     * @Description //TODO
+     * @Author IFundo
+     * @content 用户发送的内容
+     * @id 会话ID
+     */
 
     @PostMapping("/chat")
     public ApiResult<String> chat(
@@ -59,6 +78,13 @@ public class AudioController {
         String res = audioService.chat(content, id);
         return res != null ? ApiResult.success(res) : ApiResult.fail(res);
     }
+    /*
+     * @Date 09:58 2025/9/24
+     * @Description //TODO
+     * @Author IFundo
+     * @audio 上传的音频文件
+     * @id 会话ID
+     */
 
     @PostMapping("/audioChat")
     public ApiResult<String> audioChat(
