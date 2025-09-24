@@ -27,7 +27,7 @@ public class RoleServiceImpl implements RoleService {
     @Override
     public String createRole(Role role) {
         if (role.getVoice() == null || role.getVoice().trim().isEmpty()) {
-            role.setVoice("Ethan"); // 或 "未设置声音"，根据业务需求定义
+            role.setVoice("Ethan");
         }
         int rows = roleMapper.insertRole(role);
         if (rows == 1){
