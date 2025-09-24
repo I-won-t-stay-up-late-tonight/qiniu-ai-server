@@ -22,5 +22,4 @@ public interface UserRepository extends MongoRepository<SysUser, String> {
      */
     boolean existsByPhone(String phone);
 
-    SysUser findByUsername(String username);
 }

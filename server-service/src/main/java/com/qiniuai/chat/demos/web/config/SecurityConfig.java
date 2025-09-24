@@ -64,7 +64,7 @@ public class SecurityConfig {
                 }
 
                 // 2. 非公开接口才需要校验 Token（以下逻辑不变）
-                String token = request.getHeader(Constants.TOKEN_HEADER);
+                String token = request.getHeader(Constants.TOKEN);
                 if (StringUtils.isEmpty(token)) {
                     sendErrorResponse(response, HttpServletResponse.SC_UNAUTHORIZED, "请先登录");
                     return;
@@ -128,7 +128,7 @@ public class SecurityConfig {
      */
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http
+        http    .httpBasic(httpBasic -> httpBasic.disable())
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(PUBLIC_URLS).permitAll() // 公开接口放行

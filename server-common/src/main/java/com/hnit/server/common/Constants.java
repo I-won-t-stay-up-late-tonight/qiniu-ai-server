@@ -61,7 +61,10 @@ public class Constants {
      * 令牌在HTTP请求头中的名称
      */
     public static final String TOKEN_HEADER = "Authorization";
-
+    /**
+     * TOKEN
+     */
+    public static final String TOKEN = "X-Token";
     /**
      * 令牌前缀（用于HTTP请求头，如 Bearer token）
      */
