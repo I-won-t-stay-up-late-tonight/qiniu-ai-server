@@ -17,7 +17,7 @@ public interface AudioService {
 
     String audio2text(MultipartFile audio);
     String text2audio(String content);
-    String chat(String content, long id);
-    String audioChat(MultipartFile audio, long id);
+    String chat(String content, long conversationId);
+    String audioChat(MultipartFile audio, long conversationId);
 
 }

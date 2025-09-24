@@ -13,4 +13,6 @@ import org.apache.ibatis.annotations.Param;
 public interface ConversationRoleRelationMapper {
 
     int insertOrUpdate(@Param("relation") ConversationRoleRelation relation);
+
+    Integer selectRoleIdByConversationId(@Param("conversationId") Long conversationId);
 }

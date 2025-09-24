@@ -144,16 +144,16 @@ public class audioServiceImpl implements AudioService {
      * @Date 21:33 2025/9/23
      * @Description //TODO
      * @Author IFundo
-     * @chatId 会话id
+     * @conversationId 会话id
      * @content 发送的内容
      *
      */
     @Override
-    public String chat(String content, long chatId) {
+    public String chat(String content, long conversationId) {
         String modelOutput = null;
 
         try {
-            List<Message> messages = loadDbHistoryToLocalMessages(chatId);
+            List<Message> messages = loadDbHistoryToLocalMessages(conversationId);
             content += "（回答简洁）";
             messages.add(createMessage(Role.USER, content));
             GenerationParam param = createGenerationParam(messages);
@@ -163,8 +163,8 @@ public class audioServiceImpl implements AudioService {
             System.out.println("模型输出：" + modelOutput);
             messages.add(result.getOutput().getChoices().get(0).getMessage());
 
-            saveMessageToDb(chatId, Role.USER, content);
-            saveMessageToDb(chatId, Role.ASSISTANT, modelOutput);
+            saveMessageToDb(conversationId, Role.USER, content);
+            saveMessageToDb(conversationId, Role.ASSISTANT, modelOutput);
         } catch (ApiException | NoApiKeyException | InputRequiredException e) {
             e.printStackTrace();
         }
@@ -177,13 +177,13 @@ public class audioServiceImpl implements AudioService {
         dbMsg.setRole(role.name()); // 枚举转字符串，匹配数据库字段
         dbMsg.setContent(content);
         dbMsg.setSendTime(LocalDateTime.now());
-        messageMapper.insert(dbMsg); // 调用Mapper的插入方法
+        messageMapper.insertMessage(dbMsg); // 调用Mapper的插入方法
     }
 
-    private List<Message> loadDbHistoryToLocalMessages(long chatId) {
+    private List<Message> loadDbHistoryToLocalMessages(long conversationId) {
         // 1. 第一步：查询数据库中的历史消息（DbMessage是数据库POJO类）
         // 注意：按sendTime升序，保证上下文顺序和原有代码一致（先旧后新）
-        List<DbMessage> dbHistoryMessages = messageMapper.selectByConversationId(chatId);
+        List<DbMessage> dbHistoryMessages = messageMapper.selectByConversationId(conversationId);
 
         // 2. 第二步：初始化原有代码依赖的List<Message>
         List<Message> messages = new ArrayList<>();
@@ -196,15 +196,12 @@ public class audioServiceImpl implements AudioService {
             ));
         } else {
             for (DbMessage dbMsg : dbHistoryMessages) {
-                // 关键：将数据库POJO的String类型role转换为原有Message的Role枚举
-                // （前提：数据库中role字段值与Role枚举名称完全一致，如"USER"对应Role.USER）
                 Role msgRole = Role.valueOf(dbMsg.getRole().toUpperCase());
                 // 创建原有Message实例，加入列表
                 messages.add(createMessage(msgRole, dbMsg.getContent()));
             }
         }
 
-        // 返回的messages列表结构与原有代码完全一致，后续代码可直接使用
         return messages;
     }
 

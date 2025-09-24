@@ -68,14 +68,14 @@ public class AudioController {
 
     @PostMapping("/chat")
     public ApiResult<String> chat(
-            @Validated @RequestParam("content") String content, @Validated @RequestParam("id") long id
+            @Validated @RequestParam("content") String content, @Validated @RequestParam("conversationId") long conversationId
     ) {
 
         if (content.isEmpty()) {
             return ApiResult.fail("No chat provided");
         }
 
-        String res = audioService.chat(content, id);
+        String res = audioService.chat(content, conversationId);
         return res != null ? ApiResult.success(res) : ApiResult.fail(res);
     }
     /*
@@ -88,14 +88,14 @@ public class AudioController {
 
     @PostMapping("/audioChat")
     public ApiResult<String> audioChat(
-            @Validated @RequestParam("audio") MultipartFile audio, @Validated @RequestParam("id") long id
+            @Validated @RequestParam("audio") MultipartFile audio, @Validated @RequestParam("conversationId") long conversationId
     ) {
 
         if (audio.isEmpty()) {
             return ApiResult.fail("No audio provided");
         }
 
-        String res = audioService.audioChat(audio, id);
+        String res = audioService.audioChat(audio, conversationId);
         return res != null ? ApiResult.success(res) : ApiResult.fail(res);
 
     }

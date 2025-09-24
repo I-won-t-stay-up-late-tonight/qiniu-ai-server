@@ -44,4 +44,7 @@ public class Role {
 
     @Column(name = "is_builtin")
     private Boolean isBuiltin;      // 是否为内置角色
+
+    @Column(name = "voice")
+    private String voice;  //角色声音
 }
