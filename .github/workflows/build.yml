@@ -35,7 +35,7 @@ jobs:
           docker version
           # 登录阿里云镜像仓库
           docker login --username=${{ secrets.DOCKER_HUB_USERNAME }} --password=${{ secrets.DOCKER_PASSWORD }} ${{ vars.hubAddr }}
-          cd apps/hnit-server
+          cd server-service
           mkdir docker
           cp ./Dockerfile.amd64 ./docker
           cp ./target/*.jar ./docker
