@@ -13,38 +13,42 @@ import java.time.LocalDateTime;
  * @Version 1.0
  */
 @Data
-@Entity
 @Table(name = "roles")
 public class Role {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id")
     private Integer id;
 
-    @Column(name = "role_name")
     private String roleName;        // 角色名称
 
-    @Column(name = "role_desc")
     private String roleDesc;        // 角色描述
 
-    @Column(name = "personality")
     private String personality;     // 性格设定
 
-    @Column(name = "background")
     private String background;      // 背景故事
 
-    @Column(name = "avatar_url")
     private String avatarUrl;       // 头像地址
 
-    @Column(name = "create_time")
     private LocalDateTime createTime;
 
-    @Column(name = "update_time")
     private LocalDateTime updateTime;
 
-    @Column(name = "is_builtin")
     private Boolean isBuiltin;      // 是否为内置角色
 
-    @Column(name = "voice")
     private String voice;  //角色声音
+
+    @Override
+    public String toString() {
+        // 处理null值：若属性为null，显示“未设置”而非“null”，避免模型误解
+        String actualRoleName = (roleName == null || roleName.trim().isEmpty()) ? "未设置角色名称" : roleName;
+        String actualRoleDesc = (roleDesc == null || roleDesc.trim().isEmpty()) ? "未设置角色描述" : roleDesc;
+        String actualPersonality = (personality == null || personality.trim().isEmpty()) ? "未设置性格设定" : personality;
+        String actualBackground = (background == null || background.trim().isEmpty()) ? "未设置背景故事" : background;
+
+        // 拼接为「大模型可识别的角色限定词」格式：分点明确角色核心信息，语言自然
+        return "你现在需要完全代入以下角色，所有对话必须严格遵循该角色的设定：\n" +
+                "1. 角色名称：" + actualRoleName + "\n" +
+                "2. 角色描述：" + actualRoleDesc + "\n" +
+                "3. 性格设定：" + actualPersonality + "（回复时需体现该性格，如性格“开朗”则语气活泼，性格“沉稳”则语气严肃）\n" +
+                "4. 背景故事：" + actualBackground + "（回复内容需符合该背景，不提及与背景无关的信息，如背景是“古代侠客”则避免现代词汇）\n" +
+                "补充规则：不暴露你是AI的身份，所有回复都要从该角色的视角出发；若用户问题与角色设定无关，可适当引导回角色相关话题（如“关于我的背景里提到的XX，你想了解更多吗？”）。";
+    }
 }

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.qiniuai.chat.demos.web.mapper.ConversationRoleRelationMapper">
+
+    <select id="selectByConversationId" parameterType="java.lang.Long" resultType="com.qiniuai.chat.demos.web.entity.pojo.Role">
+        SELECT
+            r.id,
+            r.role_name,
+            r.role_desc,
+            r.personality,
+            r.background,
+            r.avatar_url,
+            r.create_time,
+            r.update_time,
+            r.is_builtin,
+            r.voice
+        FROM
+            roles r
+                INNER JOIN
+            conversation_role_relation crr
+            ON r.id = crr.role_id
+        WHERE
+            crr.conversation_id = #{conversationId}
+            LIMIT 1
+    </select>
+
+</mapper>

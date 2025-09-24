@@ -48,6 +48,8 @@ spring:
 mybatis:
   mapper-locations: classpath:mapper/*.xml  # mapper.xml 文件路径（如果用 XML 写 SQL）
   type-aliases-package: com.qiniuai.chat.demos.web.entity.pojo  # 实体类包路径
+  configuration:
+    map-underscore-to-camel-case: true  # 开启下划线转驼峰自动映射
 
 #百度tts配置
 baidu:
