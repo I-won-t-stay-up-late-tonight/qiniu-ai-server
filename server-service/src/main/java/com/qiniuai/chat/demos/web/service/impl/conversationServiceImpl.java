@@ -1,5 +1,6 @@
 package com.qiniuai.chat.demos.web.service.impl;
 
+import com.qiniuai.chat.demos.web.entity.pojo.Role;
 import com.qiniuai.chat.demos.web.mapper.ConversationMapper;
 import com.qiniuai.chat.demos.web.mapper.ConversationRoleRelationMapper;
 import com.qiniuai.chat.demos.web.mapper.RoleMapper;
@@ -62,8 +63,9 @@ public class conversationServiceImpl implements ConversationService {
         if (userId == null) {
             throw new IllegalArgumentException("用户ID（userId）不能为空");
         }
+        Role role = roleMapper.selectById(roleId);
 
-        if (roleId == null) {
+        if (roleId == null || role == null) {
             roleId = roleMapper.selectById(DEFAULT_ROLE_ID).getId();
         }
 
