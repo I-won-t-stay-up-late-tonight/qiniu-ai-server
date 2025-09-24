@@ -41,6 +41,7 @@ jobs:
           cp ./target/*.jar ./docker
           cd docker
           # 使用Dockerfile构建镜像
+          echo ${{ vars.hubAddr }}/${{ vars.USER_NAME }}/${{ vars.IMAGE_NAME }}:${{ vars.TAG }}
           docker build . --file Dockerfile.amd64 --tag ${{ vars.hubAddr }}/${{ vars.USER_NAME }}/${{ vars.IMAGE_NAME }}:${{ vars.TAG }}
           # 推送镜像到镜像仓库
           docker push ${{ vars.hubAddr }}/${{ vars.USER_NAME }}/${{ vars.IMAGE_NAME }}:${{ vars.TAG }}
