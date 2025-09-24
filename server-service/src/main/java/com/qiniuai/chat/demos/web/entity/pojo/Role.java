@@ -1,6 +1,8 @@
 package com.qiniuai.chat.demos.web.entity.pojo;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
@@ -14,6 +16,8 @@ import java.time.LocalDateTime;
  */
 @Data
 @Table(name = "roles")
+@AllArgsConstructor
+@NoArgsConstructor
 public class Role {
     private Integer id;
 

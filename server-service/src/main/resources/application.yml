@@ -46,7 +46,7 @@ spring:
         # 关闭超时时间（毫秒）
         shutdown-timeout: 100ms
 mybatis:
-  mapper-locations: classpath:mapper/*.xml  # mapper.xml 文件路径（如果用 XML 写 SQL）
+  mapper-locations: classpath:mapper/*.xml  # mapper.xml 文件路径（如果用 XML 写 SQL）·
   type-aliases-package: com.qiniuai.chat.demos.web.entity.pojo  # 实体类包路径
   configuration:
     map-underscore-to-camel-case: true  # 开启下划线转驼峰自动映射
@@ -62,7 +62,18 @@ baidu:
       speed: 5 # 默认语速（0-9）
       pitch: 5 # 默认音调（0-9）
       volume: 5 # 默认音量（0-9）
-
+# 讯飞开放平台配置
+xunfei:
+  tts:
+    app-id: {{.app_id}}
+    api-key: {{.api_key}
+    api-secret: {{.secret_key}}
+    host-url: wss://tts-api.xfyun.cn/v2/tts
+    # 预设角色映射（键为角色名，值为讯飞语音ID）
+    role-mapping:
+      harry-potter: "en_hp"
+      socrates: "en_socrates"
+      default: "xiaoyan"
 qiniu:
   kodo:
     access-key: hHXoW4db7Oumj1B_0EwkmmV7BGVcAQxgbo1y-w7q
