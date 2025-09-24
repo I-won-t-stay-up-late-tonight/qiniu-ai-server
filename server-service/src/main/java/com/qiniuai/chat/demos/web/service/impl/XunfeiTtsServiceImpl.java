@@ -1,6 +1,5 @@
 package com.qiniuai.chat.demos.web.service.impl;
 
-import com.iflytek.cloud.speech.*;
 import com.qiniuai.chat.demos.web.dto.XunfeiTtsRequest;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;

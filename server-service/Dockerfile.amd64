@@ -1,0 +1,21 @@
+FROM adoptopenjdk:21-jdk-hotspot-bionic AS builder
+
+# 设置时区为上海
+RUN apt-get update && apt-get install -y tzdata
+RUN ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime && echo "Asia/Shanghai" > /etc/timezone
+
+COPY ./*.jar /tmp/app.jar
+
+FROM adoptopenjdk:21-jre-hotspot-bionic
+
+# 设置时区为上海
+RUN apt-get update && apt-get install -y tzdata
+RUN ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime && echo "Asia/Shanghai" > /etc/timezone
+
+COPY --from=builder /tmp/*.jar /tmp/app.jar
+
+EXPOSE 9002
+# 配置文件
+VOLUME /config
+
+CMD ["java", "-jar", "/tmp/app.jar", "--spring.config.location=file:/config/application-dev.yml"]
