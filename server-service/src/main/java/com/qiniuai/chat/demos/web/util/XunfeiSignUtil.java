@@ -7,9 +7,6 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
 
-/**
- * 讯飞TTS签名工具类（生成v2接口所需的HMAC-SHA256签名）
- */
 public class XunfeiSignUtil {
     // 加密算法（v2接口固定为HmacSHA256）
     private static final String HMAC_ALGORITHM = "HmacSHA256";
