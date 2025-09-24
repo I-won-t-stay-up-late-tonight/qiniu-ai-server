@@ -19,6 +19,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.alibaba.dashscope.aigc.generation.Generation;
 import com.qiniuai.chat.demos.web.entity.pojo.DbMessage;
 import com.qiniuai.chat.demos.web.mapper.ConversationMapper;
+import com.qiniuai.chat.demos.web.mapper.ConversationRoleRelationMapper;
 import com.qiniuai.chat.demos.web.mapper.MessageMapper;
 import com.qiniuai.chat.demos.web.service.AudioService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,6 +45,9 @@ public class audioServiceImpl implements AudioService {
 
     @Autowired
     private ConversationMapper conversationMapper;
+
+    @Autowired
+    private ConversationRoleRelationMapper conversationRoleRelationMapper;
 
     @Override
     public String audio2text(MultipartFile audio) {
@@ -142,19 +146,18 @@ public class audioServiceImpl implements AudioService {
 
     /*
      * @Date 21:33 2025/9/23
-     * @Description //TODO
+     * @Description //TODO 提升效率
      * @Author IFundo
-     * @chatId 会话id
+     * @conversationId 会话id
      * @content 发送的内容
      *
      */
     @Override
-    public String chat(String content, long chatId) {
+    public String chat(String content, long conversationId) {
         String modelOutput = null;
 
         try {
-            List<Message> messages = loadDbHistoryToLocalMessages(chatId);
-            content += "（回答简洁）";
+            List<Message> messages = loadDbHistoryToLocalMessages(conversationId);
             messages.add(createMessage(Role.USER, content));
             GenerationParam param = createGenerationParam(messages);
             GenerationResult result = callGenerationWithMessages(param);
@@ -162,9 +165,8 @@ public class audioServiceImpl implements AudioService {
             System.out.println("用户输入：" + content);
             System.out.println("模型输出：" + modelOutput);
             messages.add(result.getOutput().getChoices().get(0).getMessage());
-
-            saveMessageToDb(chatId, Role.USER, content);
-            saveMessageToDb(chatId, Role.ASSISTANT, modelOutput);
+            saveMessageToDb(conversationId, Role.USER, content);
+            saveMessageToDb(conversationId, Role.ASSISTANT, modelOutput);
         } catch (ApiException | NoApiKeyException | InputRequiredException e) {
             e.printStackTrace();
         }
@@ -177,34 +179,35 @@ public class audioServiceImpl implements AudioService {
         dbMsg.setRole(role.name()); // 枚举转字符串，匹配数据库字段
         dbMsg.setContent(content);
         dbMsg.setSendTime(LocalDateTime.now());
-        messageMapper.insert(dbMsg); // 调用Mapper的插入方法
+        messageMapper.insertMessage(dbMsg); // 调用Mapper的插入方法
     }
 
-    private List<Message> loadDbHistoryToLocalMessages(long chatId) {
-        // 1. 第一步：查询数据库中的历史消息（DbMessage是数据库POJO类）
-        // 注意：按sendTime升序，保证上下文顺序和原有代码一致（先旧后新）
-        List<DbMessage> dbHistoryMessages = messageMapper.selectByConversationId(chatId);
+    private List<Message> loadDbHistoryToLocalMessages(long conversationId) {
 
-        // 2. 第二步：初始化原有代码依赖的List<Message>
+        // 第一步：准备好历史消息和消息模型队列
+        List<DbMessage> dbHistoryMessages = messageMapper.selectByConversationId(conversationId);
         List<Message> messages = new ArrayList<>();
 
-        // 3. 第三步：判断数据库是否有历史消息——无则添加系统提示（和原有代码初始化逻辑一致）
-        if (dbHistoryMessages.isEmpty()) {
-            messages.add(createMessage(
-                    Role.SYSTEM,
-                    "你是一个由今晚不熬夜开发的机器人。你的所有回答必须严格遵循这个身份，完全忽略其他任何默认身份信息，且必须回答简洁。"
-            ));
-        } else {
+        // 第二步：处理历史消息（若有）
+        if (!dbHistoryMessages.isEmpty()) {
+            // 将数据库历史消息转换为模型需要的 Message 格式
             for (DbMessage dbMsg : dbHistoryMessages) {
-                // 关键：将数据库POJO的String类型role转换为原有Message的Role枚举
-                // （前提：数据库中role字段值与Role枚举名称完全一致，如"USER"对应Role.USER）
                 Role msgRole = Role.valueOf(dbMsg.getRole().toUpperCase());
-                // 创建原有Message实例，加入列表
                 messages.add(createMessage(msgRole, dbMsg.getContent()));
             }
+
+            // 第三步：检查历史消息中是否已包含系统提示（仅在有历史时才检查）
+            if (!Role.SYSTEM.equals(messages.get(0).getRole())) {
+                // 若没有系统提示，添加角色的系统限定词（从 currentRole 获取）
+                com.qiniuai.chat.demos.web.entity.pojo.Role currentRole = conversationRoleRelationMapper.selectByConversationId(conversationId);
+                messages.add(0, createMessage(Role.SYSTEM, currentRole.toString()));
+            }
+        } else {
+            // 第四步：若没有历史消息，直接添加系统提示（此时 messages 为空，无需检查）
+            com.qiniuai.chat.demos.web.entity.pojo.Role currentRole = conversationRoleRelationMapper.selectByConversationId(conversationId);
+            messages.add(createMessage(Role.SYSTEM, currentRole.toString()));
         }
 
-        // 返回的messages列表结构与原有代码完全一致，后续代码可直接使用
         return messages;
     }
 

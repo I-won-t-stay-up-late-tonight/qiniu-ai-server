@@ -28,23 +28,11 @@ public interface MessageMapper {
             "ORDER BY send_time ASC")
     List<DbMessage> selectByConversationId(Long conversationId);
 
-    /**
-     * 保存消息
-     * @param conversationId 会话ID
-     * @param role 角色（SYSTEM/USER/ASSISTANT）
-     * @param content 消息内容
-     * @param sendTime 发送时间
+
+    /*
+     * @dbMsg 消息实体
      */
     @Insert("INSERT INTO messages (conversation_id, role, content, send_time) " +
             "VALUES (#{conversationId}, #{role}, #{content}, #{sendTime})")
-    void insertMessage(
-            @Param("conversationId") Long conversationId,
-            @Param("role") String role,
-            @Param("content") String content,
-            @Param("sendTime") LocalDateTime sendTime
-    );
-
-    @Insert("INSERT INTO messages (conversation_id, role, content, send_time) " +
-            "VALUES (#{conversationId}, #{role}, #{content}, #{sendTime})")
-    int insert(DbMessage dbMsg);
+    int insertMessage(DbMessage dbMsg);
 }
