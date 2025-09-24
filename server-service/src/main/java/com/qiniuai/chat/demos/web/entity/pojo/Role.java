@@ -19,7 +19,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 public class Role {
-    private Integer id;
+    private Long id;
 
     private String roleName;        // 角色名称
 
