@@ -20,7 +20,7 @@ public class Conversation {
 
     private String userId;
 
-    private String conversationName = "默认会话";
+    private String conversationName;
 
     private LocalDateTime createTime;
 
