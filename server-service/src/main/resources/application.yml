@@ -1,12 +1,12 @@
 server:
-  port: 9002 # 服务端口
+  port: 9002
   servlet:
-    context-path: / # 上下文路径
+    context-path: /
 spring:
   datasource:
-    url: jdbc:mysql://154.41.93.132:3306/qiniuchat?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&useSSL=false
-    username: root  # 替换为你的用户名
-    password: 123456  # 替换为你的密码
+    url: jdbc:mysql://154.41.93.132:3306/qiniuchat?useUnicode=true&characterEncoding=utf8&allowPublicKeyRetrieval=true&serverTimezone=Asia/Shanghai&useSSL=false
+    username: root
+    password: D6bZUvZ8cN2JxGIE0WZJ0w==
     driver-class-name: com.mysql.cj.jdbc.Driver
   data:
     mongodb:
@@ -46,10 +46,8 @@ spring:
         # 关闭超时时间（毫秒）
         shutdown-timeout: 100ms
 mybatis:
-  mapper-locations: classpath:mapper/*.xml  # mapper.xml 文件路径（如果用 XML 写 SQL）·
+  mapper-locations: classpath:mapper/*.xml  # mapper.xml 文件路径（如果用 XML 写 SQL）
   type-aliases-package: com.qiniuai.chat.demos.web.entity.pojo  # 实体类包路径
-  configuration:
-    map-underscore-to-camel-case: true  # 开启下划线转驼峰自动映射
 
 #百度tts配置
 baidu:
@@ -65,21 +63,21 @@ baidu:
 # 讯飞开放平台配置
 xunfei:
   tts:
-    app-id: {{.app_id}}
-    api-key: {{.api_key}
-    api-secret: {{.secret_key}}
-    host-url: wss://tts-api.xfyun.cn/v2/tts
+    app-id: eef954cd
+    api-key: 4243b6cacf6c7bff27a16b333cffe247
+    api-secret: N2E0Y2U1NWIzYWQ3MmNjMGIyZGU5YWFh
+    host-url: wss://spark-api.xf-yun.com/v4.0/chat
     # 预设角色映射（键为角色名，值为讯飞语音ID）
     role-mapping:
-      harry-potter: "en_hp"
-      socrates: "en_socrates"
-      default: "xiaoyan"
+      harry-potter: "en_hp"       # 假设的哈利波特语音ID（需替换为实际值）
+      socrates: "en_socrates"     # 假设的苏格拉底语音ID（需替换为实际值）
+      default: "xiaoyan"          # 默认女声
 qiniu:
   kodo:
     access-key: hHXoW4db7Oumj1B_0EwkmmV7BGVcAQxgbo1y-w7q
     secret-key: ZJ7NpuflHtI8fX4DXwWtZCbLynQ1e0n4ryv7AVuM
-    bucket-name: hnit-wlwsys
-    domain:
+    bucket-name: hnit-qiniu
+    domain: t31wwjckj.sabkt.gdipper.com
     base-path: tts-audio/ # 音频存储基础路径
 
 logging:

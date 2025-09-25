@@ -106,6 +106,13 @@
             <scope>runtime</scope>
             <optional>true</optional>
         </dependency>
+        <!-- AOP -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-aop</artifactId>
+            <!-- 无需指定版本，Spring Boot 父工程已管理 -->
+        </dependency>
+
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
