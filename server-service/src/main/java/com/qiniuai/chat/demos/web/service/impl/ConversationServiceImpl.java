@@ -18,7 +18,7 @@ import org.springframework.stereotype.Service;
  */
 
 @Service
-public class conversationServiceImpl implements ConversationService {
+public class ConversationServiceImpl implements ConversationService {
 
     @Autowired
     private ConversationMapper conversationMapper;

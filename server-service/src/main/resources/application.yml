@@ -80,6 +80,11 @@ qiniu:
     domain: t31wwjckj.sabkt.gdipper.com
     base-path: tts-audio/ # 音频存储基础路径
 
+#阿里语音平台
+ali:
+  audio:
+    asr:
+      api-key: sk-95513ded49764ba6a533d427797b6f20
 logging:
   level:
     root: INFO # 根日志级别

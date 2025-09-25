@@ -22,7 +22,9 @@ import com.qiniuai.chat.demos.web.mapper.ConversationMapper;
 import com.qiniuai.chat.demos.web.mapper.ConversationRoleRelationMapper;
 import com.qiniuai.chat.demos.web.mapper.MessageMapper;
 import com.qiniuai.chat.demos.web.service.AudioService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
@@ -37,8 +39,9 @@ import java.util.*;
  * @Version 1.0
  */
 
+@Slf4j
 @Service
-public class audioServiceImpl implements AudioService {
+public class AudioServiceImpl implements AudioService {
 
     @Autowired
     private MessageMapper messageMapper;
@@ -49,60 +52,104 @@ public class audioServiceImpl implements AudioService {
     @Autowired
     private ConversationRoleRelationMapper conversationRoleRelationMapper;
 
+    // 实例和常量
+    private static final String ASR_MODEL = "qwen3-asr-flash";
+    private static final String ASR_OPTIONS_KEY = "asr_options";
+    private static final String DEFAULT_ERROR_MSG = "解析失败";
+    @Value("${ali.audio.asr.api-key}")  // 从配置文件注入
+    private String apiKey;
+
+    //会话模型
+    private final MultiModalConversation conversationClient;
+    // 创建ObjectMapper实例
+    private ObjectMapper objectMapper = new ObjectMapper();
+
+
+    // 初始化客户端
+    public AudioServiceImpl() {
+        this.conversationClient = new MultiModalConversation();
+    }
+
+
+
     @Override
     public String audio2text(MultipartFile audio) {
-
-        byte[] audioBytes = new byte[0];
         try {
-            audioBytes = audio.getBytes();
+            // 1. 处理音频文件
+            byte[] audioBytes = audio.getBytes();
+            String base64Audio = Base64.getEncoder().encodeToString(audioBytes);
+            String audioContentType = audio.getContentType();
+            String audioDataUrl = "data:" + audioContentType + ";base64," + base64Audio;
+
+            // 2. 构建请求参数
+            MultiModalConversationParam param = buildConversationParam(audioDataUrl);
+
+            // 3. 调用API
+            MultiModalConversationResult result = conversationClient.call(param);
+
+            // 4. 处理结果
+            String resJson = JsonUtils.toJson(result);
+            String text = jsonTextExtractor(resJson);
+
+            return text != null ? text : DEFAULT_ERROR_MSG;
+
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            log.error("音频文件处理异常", e);
+            throw new RuntimeException("音频文件处理失败: " + e.getMessage());
+        } catch (NoApiKeyException e) {
+            log.error("API Key配置异常", e);
+            throw new RuntimeException("语音识别服务未配置API Key");
+        } catch (UploadFileException e) {
+            log.error("音频上传异常", e);
+            throw new RuntimeException("音频上传失败: " + e.getMessage());
+        } catch (Exception e) {
+            log.error("语音识别处理异常", e);
+            throw new RuntimeException("语音识别处理失败");
         }
-        String base64Audio = Base64.getEncoder().encodeToString(audioBytes);
+    }
 
-        // 构建包含Base64音频频的内容（格式：data:audio/[格式];base64,[编码内容]）
-        String audioContentType = audio.getContentType(); // 获取音频MIME类型（如audio/mpeg）
-        String audioDataUrl = "data:" + audioContentType + ";base64," + base64Audio;
-
-        MultiModalConversation conv = new MultiModalConversation();
+    /**
+     * 构建对话参数
+     */
+    private MultiModalConversationParam buildConversationParam(String audioDataUrl) {
+        // 构建用户消息
         MultiModalMessage userMessage = MultiModalMessage.builder()
                 .role(Role.USER.getValue())
-                .content(Arrays.asList(
-                        Collections.singletonMap("audio", audioDataUrl) // 使用转换后的音频数据
+                .content(Collections.singletonList(
+                        Collections.singletonMap("audio", audioDataUrl)
                 ))
                 .build();
 
-        MultiModalMessage sysMessage = MultiModalMessage.builder().role(Role.SYSTEM.getValue())
-                // 此处用于配置定制化识别的Context
-                .content(Arrays.asList(Collections.singletonMap("text", "")))
+        // 构建系统消息
+        MultiModalMessage sysMessage = MultiModalMessage.builder()
+                .role(Role.SYSTEM.getValue())
+                .content(Collections.singletonList(
+                        Collections.singletonMap("text", "")
+                ))
                 .build();
 
+        // 构建ASR配置
+        Map<String, Object> asrOptions = buildAsrOptions();
+
+        // 构建请求参数
+        return MultiModalConversationParam.builder()
+                .apiKey(apiKey)
+                .model(ASR_MODEL)
+                .message(userMessage)
+                .message(sysMessage)
+                .parameter(ASR_OPTIONS_KEY, asrOptions)
+                .build();
+    }
+
+    /**
+     * 构建ASR识别选项
+     */
+    private Map<String, Object> buildAsrOptions() {
         Map<String, Object> asrOptions = new HashMap<>();
         asrOptions.put("enable_lid", true);
         asrOptions.put("enable_itn", false);
-        // asrOptions.put("language", "zh"); // 可选，若已知音频的语种，可通过该参数指定待识别语种，以提升识别准确率
-
-        MultiModalConversationParam param = MultiModalConversationParam.builder()
-                // 若没有配置环境变量，请用百炼API Key将下行替换为：.apiKey("sk-xxx")
-                .apiKey("sk-95513ded49764ba6a533d427797b6f20")
-                .model("qwen3-asr-flash")
-                .message(userMessage)
-                .message(sysMessage)
-                .parameter("asr_options", asrOptions)
-                .build();
-
-        MultiModalConversationResult result = null;
-        try {
-            result = conv.call(param);
-        } catch (NoApiKeyException e) {
-            throw new RuntimeException(e);
-        } catch (UploadFileException e) {
-            throw new RuntimeException(e);
-        }
-        String resJson = JsonUtils.toJson(result);
-        String test = jsonTextExtractor(resJson);
-        return test != null ? test : "解析失败";
-
+        // 可根据需要添加更多配置
+        return asrOptions;
     }
 
     @Override
@@ -181,33 +228,35 @@ public class audioServiceImpl implements AudioService {
         dbMsg.setSendTime(LocalDateTime.now());
         messageMapper.insertMessage(dbMsg); // 调用Mapper的插入方法
     }
+    private void batchSaveMessageToDb(long conversationId, List<DbMessage> dbMessages) {
+        // 统一设置conversationId和sendTime（若未设置）
+        dbMessages.forEach(msg -> {
+            msg.setConversationId(conversationId);
+            if (msg.getSendTime() == null) {
+                msg.setSendTime(LocalDateTime.now()); // 或改用数据库生成时间
+            }
+        });
+        messageMapper.batchInsertMessage(dbMessages); // 批量插入Mapper方法
+    }
 
     private List<Message> loadDbHistoryToLocalMessages(long conversationId) {
 
-        // 第一步：准备好历史消息和消息模型队列
+        // 第一步：先查对话绑定的角色（仅1次，避免重复查库）
+        com.qiniuai.chat.demos.web.entity.pojo.Role currentRole = conversationRoleRelationMapper.selectByConversationId(conversationId);
+        // 第二步：查历史消息
         List<DbMessage> dbHistoryMessages = messageMapper.selectByConversationId(conversationId);
         List<Message> messages = new ArrayList<>();
 
-        // 第二步：处理历史消息（若有）
+        // 第三步：先加系统提示（基于已查询的currentRole）
+        messages.add(createMessage(Role.SYSTEM, currentRole.toString()));
+
+        // 第四步：再加历史消息（若有），避免ArrayList头插操作
         if (!dbHistoryMessages.isEmpty()) {
-            // 将数据库历史消息转换为模型需要的 Message 格式
             for (DbMessage dbMsg : dbHistoryMessages) {
                 Role msgRole = Role.valueOf(dbMsg.getRole().toUpperCase());
                 messages.add(createMessage(msgRole, dbMsg.getContent()));
             }
-
-            // 第三步：检查历史消息中是否已包含系统提示（仅在有历史时才检查）
-            if (!Role.SYSTEM.equals(messages.get(0).getRole())) {
-                // 若没有系统提示，添加角色的系统限定词（从 currentRole 获取）
-                com.qiniuai.chat.demos.web.entity.pojo.Role currentRole = conversationRoleRelationMapper.selectByConversationId(conversationId);
-                messages.add(0, createMessage(Role.SYSTEM, currentRole.toString()));
-            }
-        } else {
-            // 第四步：若没有历史消息，直接添加系统提示（此时 messages 为空，无需检查）
-            com.qiniuai.chat.demos.web.entity.pojo.Role currentRole = conversationRoleRelationMapper.selectByConversationId(conversationId);
-            messages.add(createMessage(Role.SYSTEM, currentRole.toString()));
         }
-
         return messages;
     }
 
@@ -224,11 +273,8 @@ public class audioServiceImpl implements AudioService {
 
     private String jsonTextExtractor(String resJson){
         try {
-            // 创建ObjectMapper实例
-            ObjectMapper objectMapper = new ObjectMapper();
             // 解析JSON字符串为JsonNode
             JsonNode rootNode = objectMapper.readTree(resJson);
-
             // 按照JSON路径提取text内容
             String text = rootNode
                     .path("output")
