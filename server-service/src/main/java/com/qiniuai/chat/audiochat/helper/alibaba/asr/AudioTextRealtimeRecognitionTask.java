@@ -114,7 +114,7 @@ class AudioTextRealtimeRecognitionTask implements Runnable {
 
     public static void main(String[] args) throws InterruptedException {
         ExecutorService executorService = Executors.newSingleThreadExecutor();
-        executorService.submit(new AudioTextRealtimeRecognitionTask(Paths.get(System.getProperty("user.dir"), "asr_example.wav")));
+        executorService.submit(new AudioTextRealtimeRecognitionTask(Paths.get(System.getProperty("user.dir"), "synthesized-speech.wav")));
         executorService.shutdown();
 
         // wait for all tasks to complete
