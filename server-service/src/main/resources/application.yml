@@ -45,6 +45,25 @@ spring:
           max-wait: 1000ms
         # 关闭超时时间（毫秒）
         shutdown-timeout: 100ms
+  # RabbitMQ配置
+  rabbitmq:
+    host: 154.41.93.132
+    port: 5672
+    username: admin
+    password: Aa123456==
+    listener:
+      simple:
+        concurrency: 3
+        max-concurrency: 10
+        prefetch: 1
+        acknowledge-mode: auto
+    template:
+      retry:
+        enabled: true
+        initial-interval: 1000
+        max-attempts: 3
+        max-interval: 3000
+        multiplier: 2
 mybatis:
   mapper-locations: classpath:mapper/*.xml  # mapper.xml 文件路径（如果用 XML 写 SQL）
   type-aliases-package: com.qiniuai.chat.demos.web.entity.pojo  # 实体类包路径
@@ -80,6 +99,130 @@ qiniu:
     domain: t31wwjckj.sabkt.gdipper.com
     base-path: tts-audio/ # 音频存储基础路径
 
+# 第三方服务配置
+third-party:
+  # 阿里云配置
+  aliyun:
+    access-key-id: LTAI5tFQZ7WbmkPzioKZfDd7
+    access-key-secret: amLpi3qgnYGiNUHejETMX2ssqoGVPN
+    region-id: cn-shanghai
+    # ASR配置
+    asr:
+      app-key: sk-91e9869d987d4dccaf03889cc6c33871
+      url: https://nls-gateway.cn-shanghai.aliyuncs.com/stream/v1/asr
+      model: paraformer-realtime-8k-v2
+      format: mp3
+      sample-rate: 8000
+      timeout: 30000
+    # TTS配置
+    tts:
+      app-key: sk-91e9869d987d4dccaf03889cc6c33871
+      url: https://dashscope.aliyuncs.com/api/v1/services/audio/speech_synthesis
+      voice: xiaoyun
+      format: mp3
+      sample-rate: 16000
+      model: qwen3-tts-v1
+      timeout: 30000
+
+  # DeepSeek LLM配置
+  deepseek:
+    url: https://api.deepseek.com/v1/chat/completions
+    api-key: sk-c620dc51a0394439a300c3d257fa435f
+    model: deepseek-chat
+    timeout: 60000
+    max-tokens: 1024
+    temperature: 0.7
+
+  # 科大讯飞音色转换配置
+  iflytek:
+    app-id: eef954cd
+    api-key: 4243b6cacf6c7bff27a16b333cffe247
+    api-secret: N2E0Y2U1NWIzYWQ3MmNjMGIyZGU5YWFh
+    voice-conversion:
+      url: https://api.xfyun.cn/v1/service/v1/tts/voice_conversion
+
+
+# 应用配置
+app:
+  # 音频配置
+  audio:
+    temp-dir: ./temp-audio
+    chunk-size: 1024
+    max-duration-seconds: 60
+    clean-expired-files-cron: 0 0 */1 * * ? # 每小时清理一次过期文件
+
+  # 缓存配置
+  cache:
+    role-info-expire-hours: 24
+    conversation-status-expire-minutes: 30
+
+  # WebSocket配置
+  websocket:
+    endpoint: /ws/voice-call
+    broker:
+      prefix: /topic
+      destination: /queue/voice-response
+# 线程池配置
+thread-pool:
+  asr:
+    core-pool-size: 5
+    max-pool-size: 10
+    queue-capacity: 50
+    keep-alive-seconds: 60
+    thread-name-prefix: asr-executor-
+
+  llm:
+    core-pool-size: 5
+    max-pool-size: 10
+    queue-capacity: 50
+    keep-alive-seconds: 60
+    thread-name-prefix: llm-executor-
+
+  tts:
+    core-pool-size: 5
+    max-pool-size: 10
+    queue-capacity: 50
+    keep-alive-seconds: 60
+    thread-name-prefix: tts-executor-
+
+  voice-conversion:
+    core-pool-size: 5
+    max-pool-size: 10
+    queue-capacity: 50
+    keep-alive-seconds: 60
+    thread-name-prefix: voice-conversion-executor-
+
+# RabbitMQ队列配置
+rabbitmq:
+  queues:
+    audio-merge: audio.merge.queue
+    asr-task: asr.task.queue
+    llm-task: llm.task.queue
+    tts-task: tts.task.queue
+    voice-conversion-task: voice.conversion.task.queue
+    websocket-send: websocket.send.queue
+
+  exchanges:
+    task-exchange: task.exchange
+
+  routing-keys:
+    audio-merge: audio.merge.key
+    asr-task: asr.task.key
+    llm-task: llm.task.key
+    tts-task: tts.task.key
+    voice-conversion-task: voice.conversion.key
+    websocket-send: websocket.send.key
+
+# 音频文件配置
+audio:
+  temp-dir: ./temp-audio
+  chunk-size: 1024
+  max-duration: 60 # 最大录音时长(秒)
+  format: mp3
+  sample-rate: 8000
+
+
+# 日志配置
 #阿里语音平台
 ali:
   audio:
