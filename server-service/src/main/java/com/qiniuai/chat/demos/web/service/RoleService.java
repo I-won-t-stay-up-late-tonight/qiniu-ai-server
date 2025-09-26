@@ -5,6 +5,8 @@ package com.qiniuai.chat.demos.web.service;
 import com.qiniuai.chat.demos.web.entity.pojo.Role;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.List;
+
 /**
  * @ClassName audioService
  * @Description TODO
@@ -16,5 +18,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 public interface RoleService {
 
-    String createRole(Role role);
+    boolean createRole(Role role);
+
+    List<Role> searchRole(String name);
 }
