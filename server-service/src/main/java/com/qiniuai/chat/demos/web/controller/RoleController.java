@@ -6,10 +6,9 @@ import com.qiniuai.chat.demos.web.service.ConversationService;
 import com.qiniuai.chat.demos.web.service.RoleService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 /**
  * @ClassName RoleController
@@ -29,12 +28,19 @@ public class RoleController {
     @PostMapping("/createRole")
     public ApiResult<String> createConversation(@Validated Role role) {
 
-        String res = roleService.createRole(role);
-        if (res == "创建成功"){
-            return ApiResult.success(res);
+        boolean res = roleService.createRole(role);
+        if (res){
+            return ApiResult.success("创建成功");
         }else {
-            return ApiResult.fail(res);
+            return ApiResult.fail("创建失败");
         }
+    }
+
+    @GetMapping("/searchRole")
+    public ApiResult<List<Role>> searchRole(@Validated String name) {
+
+        List<Role> roles = roleService.searchRole(name);
+        return ApiResult.success(roles);
     }
 
 }

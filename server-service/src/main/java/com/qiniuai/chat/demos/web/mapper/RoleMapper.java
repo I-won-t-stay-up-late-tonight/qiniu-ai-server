@@ -2,6 +2,8 @@ package com.qiniuai.chat.demos.web.mapper;
 import org.apache.ibatis.annotations.*;
 import com.qiniuai.chat.demos.web.entity.pojo.Role;
 
+import java.util.List;
+
 /**
  * @ClassName RoleMapper
  * @Description TODO
@@ -44,4 +46,21 @@ public interface RoleMapper {
             ")")
     int insertRole(Role role);
 
+
+    // 新增的查询方法：根据角色名称模糊查询角色列表
+    @Select("SELECT " +
+            "id, " +
+            "role_name AS roleName, " +
+            "role_desc AS roleDesc, " +
+            "personality, " +
+            "background, " +
+            "avatar_url AS avatarUrl, " +
+            "create_time AS createTime, " +
+            "update_time AS updateTime, " +
+            "is_builtin AS isBuiltin, " +
+            "voice " +
+            "FROM roles " +
+            "WHERE role_name LIKE CONCAT('%', #{name}, '%') " +
+            "ORDER BY create_time DESC")
+    List<Role> searchRole(String name);
 }

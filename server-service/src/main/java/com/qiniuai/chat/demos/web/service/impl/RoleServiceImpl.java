@@ -10,6 +10,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 /**
  * @ClassName audioServiceImpl
  * @Description TODO
@@ -25,15 +27,21 @@ public class RoleServiceImpl implements RoleService {
     private RoleMapper roleMapper;
 
     @Override
-    public String createRole(Role role) {
+    public boolean createRole(Role role) {
         if (role.getVoice() == null || role.getVoice().trim().isEmpty()) {
             role.setVoice("Ethan");
         }
         int rows = roleMapper.insertRole(role);
         if (rows == 1){
-            return "创建成功";
+            return true;
         }else {
-            return "创建失败";
+            return false;
         }
+    }
+
+    @Override
+    public List<Role> searchRole(String name) {
+        List<Role> roles = roleMapper.searchRole(name);
+        return roles;
     }
 }
