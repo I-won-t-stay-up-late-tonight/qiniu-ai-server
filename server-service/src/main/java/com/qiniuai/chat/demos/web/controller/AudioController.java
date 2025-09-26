@@ -1,6 +1,7 @@
 package com.qiniuai.chat.demos.web.controller;
 
 import com.hnit.server.dto.ApiResult;
+import com.qiniuai.chat.demos.web.annotation.MethodTimer;
 import com.qiniuai.chat.demos.web.service.AudioService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
@@ -29,6 +30,7 @@ public class AudioController {
      * @ audio 上传的音频文件
      */
     @PostMapping("/audio2text")
+    @MethodTimer(description = "音频转文字接口")
     public ApiResult<String> audioToText(
             @Validated @RequestParam("audio") MultipartFile audio) {
 
@@ -67,6 +69,7 @@ public class AudioController {
      */
 
     @PostMapping("/chat")
+    @MethodTimer(description = "音频转文字接口1")
     public ApiResult<String> chat(
             @Validated @RequestParam("content") String content, @Validated @RequestParam("conversationId") long conversationId
     ) {
@@ -78,6 +81,7 @@ public class AudioController {
         String res = audioService.chat(content, conversationId);
         return res != null ? ApiResult.success(res) : ApiResult.fail(res);
     }
+
     /*
      * @Date 09:58 2025/9/24
      * @Description //TODO
@@ -87,6 +91,7 @@ public class AudioController {
      */
 
     @PostMapping("/audioChat")
+    @MethodTimer(description = "聊天")
     public ApiResult<String> audioChat(
             @Validated @RequestParam("audio") MultipartFile audio, @Validated @RequestParam("conversationId") long conversationId
     ) {

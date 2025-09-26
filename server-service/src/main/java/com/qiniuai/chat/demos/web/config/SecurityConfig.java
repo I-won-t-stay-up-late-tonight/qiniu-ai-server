@@ -42,10 +42,12 @@ public class SecurityConfig {
      private RedisTemplate<String, Object> redisTemplate;
 
      private static final String[] PUBLIC_URLS = {
-     "/api/user/register",
-     "/api/user/send-code",
-     "/api/user/login/phone",
-     "/api/user/login/account"
+             "/api/user/register",
+             "/api/user/send-code",
+             "/api/user/login/phone",
+             "/api/user/login/account",
+             "/ws/**",
+             "/ws/sockjs/**"
      };
 
      // 路径匹配器（用于判断请求是否为公开接口）

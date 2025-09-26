@@ -25,7 +25,7 @@ public interface MessageMapper {
     @Select("SELECT id, conversation_id, role, content, send_time " +
             "FROM messages " +
             "WHERE conversation_id = #{conversationId} " +
-            "ORDER BY send_time ASC")
+            "ORDER BY send_time ASC LIMIT 30")
     List<DbMessage> selectByConversationId(Long conversationId);
 
 
@@ -35,4 +35,9 @@ public interface MessageMapper {
     @Insert("INSERT INTO messages (conversation_id, role, content, send_time) " +
             "VALUES (#{conversationId}, #{role}, #{content}, #{sendTime})")
     int insertMessage(DbMessage dbMsg);
+
+    /*
+     * @dbMessages 消息实体列表
+     */
+    void batchInsertMessage(List<DbMessage> dbMessages);
 }
