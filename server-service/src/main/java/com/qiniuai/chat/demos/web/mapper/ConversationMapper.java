@@ -1,6 +1,9 @@
 package com.qiniuai.chat.demos.web.mapper;
 
+import com.qiniuai.chat.demos.web.entity.pojo.Conversation;
 import org.apache.ibatis.annotations.*;
+
+import java.util.List;
 
 /**
  * @ClassName ConversationMapper
@@ -42,5 +45,21 @@ public interface ConversationMapper {
             @Param("userId") Long userId, // 明确参数名，避免多参数解析混乱
             @Param("conversationName") String conversationName // 明确参数名
     );
+
+    /**
+     * 根据用户ID查询该用户的所有会话记录
+     * @param userId 用户ID
+     * @return 会话记录列表
+     */
+    @Select("SELECT " +
+            "id, " +                      // 会话ID
+            "user_id AS userId, " +       // 用户ID，映射到实体类的userId属性
+            "conversation_name AS conversationName, " +  // 会话名称
+            "create_time AS createTime, " +  // 创建时间
+            "update_time AS updateTime " +  // 更新时间
+            "FROM conversations " +
+            "WHERE user_id = #{userId} " +  // 按用户ID筛选
+            "ORDER BY update_time DESC")    // 按更新时间倒序排列，最新的会话在前
+    List<Conversation> searchConversationByUserId(@Param("userId") long userId);
 }
 
