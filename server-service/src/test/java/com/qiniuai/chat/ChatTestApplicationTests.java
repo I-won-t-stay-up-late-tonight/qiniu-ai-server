@@ -1,6 +1,6 @@
 package com.qiniuai.chat;
 
-import com.qiniuai.chat.demos.web.service.SmsService;
+import com.qiniuai.chat.web.service.SmsService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
