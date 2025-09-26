@@ -3,6 +3,10 @@ package com.qiniuai.chat.demos.web.service;
 //import com.alibaba.dashscope.exception.NoApiKeyException;
 //import com.alibaba.dashscope.exception.UploadFileException;
 
+import com.qiniuai.chat.demos.web.entity.pojo.Conversation;
+
+import java.util.List;
+
 /**
  * @ClassName audioService
  * @Description TODO
@@ -17,4 +21,6 @@ public interface ConversationService {
     String createConversation(Long userId, String conversationService);
 
     String createConversationAndRole(Long userId, String conversationName, Long roleId);
+
+    List<Conversation> searchConversationByUserId(long userId);
 }

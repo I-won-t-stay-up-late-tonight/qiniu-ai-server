@@ -1,14 +1,14 @@
 package com.qiniuai.chat.demos.web.controller;
 
 import com.hnit.server.dto.ApiResult;
+import com.qiniuai.chat.demos.web.entity.pojo.Conversation;
 import com.qiniuai.chat.demos.web.entity.pojo.Role;
 import com.qiniuai.chat.demos.web.service.ConversationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 
 /**
@@ -45,5 +45,12 @@ public class ConversationController {
         String res = conversationService.createConversationAndRole(userId, conversationName, roleId);
         return res != null ? ApiResult.success(res) : ApiResult.fail(res);
 
+    }
+
+    @GetMapping("/searchConversation")
+    public ApiResult<List<Conversation>> searchRole(@Validated long userId) {
+
+        List<Conversation> conversations = conversationService.searchConversationByUserId(userId);
+        return ApiResult.success(conversations);
     }
 }

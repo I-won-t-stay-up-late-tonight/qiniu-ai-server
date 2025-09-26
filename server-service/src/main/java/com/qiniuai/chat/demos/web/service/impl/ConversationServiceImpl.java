@@ -1,5 +1,6 @@
 package com.qiniuai.chat.demos.web.service.impl;
 
+import com.qiniuai.chat.demos.web.entity.pojo.Conversation;
 import com.qiniuai.chat.demos.web.entity.pojo.Role;
 import com.qiniuai.chat.demos.web.mapper.ConversationMapper;
 import com.qiniuai.chat.demos.web.mapper.ConversationRoleRelationMapper;
@@ -8,6 +9,8 @@ import com.qiniuai.chat.demos.web.service.ConversationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 /**
  * @ClassName audioServiceImpl
@@ -90,6 +93,12 @@ public class ConversationServiceImpl implements ConversationService {
         }
 
         return "创建成功";
+    }
+
+    @Override
+    public List<Conversation> searchConversationByUserId(long userId) {
+        List<Conversation> conversations = conversationMapper.searchConversationByUserId(userId);
+        return conversations;
     }
 
 }
