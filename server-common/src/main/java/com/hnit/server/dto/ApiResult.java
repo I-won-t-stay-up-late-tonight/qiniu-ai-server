@@ -7,34 +7,41 @@ import lombok.Data;
  */
 @Data
 public class ApiResult<T> {
-    private int code;
-    private String message;
-    private T data;
 
-    private ApiResult(int code, String message, T data) {
-        this.code = code;
-        this.message = message;
-        this.data = data;
-    }
+  private int code;
+  private String message;
+  private T data;
 
-    /**
-     * 成功响应
-     */
-    public static <T> ApiResult<T> success(T data) {
-        return new ApiResult<>(200, "success", data);
-    }
+  private ApiResult(int code, String message, T data) {
+    this.code = code;
+    this.message = message;
+    this.data = data;
+  }
 
-    /**
-     * 失败响应
-     */
-    public static <T> ApiResult<T> fail(String message) {
-        return new ApiResult<>(500, message, null);
-    }
+  public ApiResult(int code, String message) {
+    this.code = code;
+    this.message = message;
+  }
 
-    /**
-     * 失败响应
-     */
-    public static <T> ApiResult<T> fail(int code, String message) {
-        return new ApiResult<>(code, message, null);
-    }
+
+  /**
+   * 成功响应
+   */
+  public static <T> ApiResult<T> success(T data) {
+    return new ApiResult<>(200, "success", data);
+  }
+
+  /**
+   * 失败响应
+   */
+  public static <T> ApiResult<T> fail(String message) {
+    return new ApiResult<>(500, message, null);
+  }
+
+  /**
+   * 失败响应
+   */
+  public static <T> ApiResult<T> fail(int code, String message) {
+    return new ApiResult<>(code, message, null);
+  }
 }
