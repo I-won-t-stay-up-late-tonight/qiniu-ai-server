@@ -1,4 +1,4 @@
-package com.qiniuai.chat.audiochat.helper.alibaba;
+package com.qiniuai.chat.audiochat.helper.alibaba.asr;
 
 import com.alibaba.dashscope.audio.asr.recognition.Recognition;
 import com.alibaba.dashscope.audio.asr.recognition.RecognitionParam;
