@@ -69,20 +69,8 @@ public class AudioController {
      */
 
     @PostMapping("/chat")
+    @MethodTimer(description = "音频转文字接口1")
     public ApiResult<String> chat(
-            @Validated @RequestParam("content") String content, @Validated @RequestParam("conversationId") long conversationId
-    ) {
-
-        if (content.isEmpty()) {
-            return ApiResult.fail("No chat provided");
-        }
-
-        String res = audioService.chat(content, conversationId);
-        return res != null ? ApiResult.success(res) : ApiResult.fail(res);
-    }
-
-    @PostMapping("/chat2")
-    public ApiResult<String> chat2(
             @Validated @RequestParam("content") String content, @Validated @RequestParam("conversationId") long conversationId
     ) {
 
@@ -103,6 +91,7 @@ public class AudioController {
      */
 
     @PostMapping("/audioChat")
+    @MethodTimer(description = "聊天")
     public ApiResult<String> audioChat(
             @Validated @RequestParam("audio") MultipartFile audio, @Validated @RequestParam("conversationId") long conversationId
     ) {

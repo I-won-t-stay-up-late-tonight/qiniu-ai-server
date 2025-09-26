@@ -25,11 +25,14 @@ import com.qiniuai.chat.demos.web.service.AudioService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @ClassName audioServiceImpl
@@ -64,12 +67,10 @@ public class AudioServiceImpl implements AudioService {
     // 创建ObjectMapper实例
     private ObjectMapper objectMapper = new ObjectMapper();
 
-
     // 初始化客户端
     public AudioServiceImpl() {
         this.conversationClient = new MultiModalConversation();
     }
-
 
 
     @Override
@@ -157,7 +158,7 @@ public class AudioServiceImpl implements AudioService {
         String MODEL = "qwen3-tts-flash";
         MultiModalConversation conv = new MultiModalConversation();
         MultiModalConversationParam param = MultiModalConversationParam.builder()
-                .apiKey("sk-95513ded49764ba6a533d427797b6f20")
+                .apiKey(apiKey)
                 .model(MODEL)
                 .text(content)
                 .voice(AudioParameters.Voice.CHERRY)
@@ -209,8 +210,8 @@ public class AudioServiceImpl implements AudioService {
             GenerationParam param = createGenerationParam(messages);
             GenerationResult result = callGenerationWithMessages(param);
             modelOutput = result.getOutput().getChoices().get(0).getMessage().getContent();
-            System.out.println("用户输入：" + content);
-            System.out.println("模型输出：" + modelOutput);
+            log.info("用户输入：" + content);
+            log.info("模型输出：" + modelOutput);
             messages.add(result.getOutput().getChoices().get(0).getMessage());
             saveMessageToDb(conversationId, Role.USER, content);
             saveMessageToDb(conversationId, Role.ASSISTANT, modelOutput);
@@ -228,7 +229,8 @@ public class AudioServiceImpl implements AudioService {
         dbMsg.setSendTime(LocalDateTime.now());
         messageMapper.insertMessage(dbMsg); // 调用Mapper的插入方法
     }
-    private void batchSaveMessageToDb(long conversationId, List<DbMessage> dbMessages) {
+    @Async
+    public void batchSaveMessageToDb(long conversationId, List<DbMessage> dbMessages) {
         // 统一设置conversationId和sendTime（若未设置）
         dbMessages.forEach(msg -> {
             msg.setConversationId(conversationId);
@@ -240,21 +242,24 @@ public class AudioServiceImpl implements AudioService {
     }
 
     private List<Message> loadDbHistoryToLocalMessages(long conversationId) {
-
-        // 第一步：先查对话绑定的角色（仅1次，避免重复查库）
+        // 1. 查询对话绑定的角色（仅1次）
         com.qiniuai.chat.demos.web.entity.pojo.Role currentRole = conversationRoleRelationMapper.selectByConversationId(conversationId);
-        // 第二步：查历史消息
+        // 2. 查历史消息
         List<DbMessage> dbHistoryMessages = messageMapper.selectByConversationId(conversationId);
-        List<Message> messages = new ArrayList<>();
-
-        // 第三步：先加系统提示（基于已查询的currentRole）
+        // 优化点1：预先计算集合容量，避免动态扩容
+        int initialCapacity = 1 + (dbHistoryMessages != null ? dbHistoryMessages.size() : 0);
+        List<Message> messages = new ArrayList<>(initialCapacity);
+        // 3. 添加系统提示
         messages.add(createMessage(Role.SYSTEM, currentRole.toString()));
-
-        // 第四步：再加历史消息（若有），避免ArrayList头插操作
-        if (!dbHistoryMessages.isEmpty()) {
+        // 4. 添加历史消息（减少循环内临时变量）
+        if (dbHistoryMessages != null && !dbHistoryMessages.isEmpty()) {
+            Role msgRole;
+            String content;
             for (DbMessage dbMsg : dbHistoryMessages) {
-                Role msgRole = Role.valueOf(dbMsg.getRole().toUpperCase());
-                messages.add(createMessage(msgRole, dbMsg.getContent()));
+                // 优化点2：减少循环内的临时变量创建和字符串处理
+                msgRole = Role.valueOf(dbMsg.getRole().toUpperCase());
+                content = dbMsg.getContent();
+                messages.add(createMessage(msgRole, content));
             }
         }
         return messages;
@@ -296,7 +301,7 @@ public class AudioServiceImpl implements AudioService {
     private GenerationParam createGenerationParam(List<Message> messages) {
         return GenerationParam.builder()
                 // 若没有配置环境变量，请用阿里云百炼API Key将下行替换为：.apiKey("sk-xxx")
-                .apiKey("sk-95513ded49764ba6a533d427797b6f20")
+                .apiKey(apiKey)
                 // 模型列表：https://help.aliyun.com/zh/model-studio/getting-started/models
                 .model("qwen-plus")
                 .messages(messages)
