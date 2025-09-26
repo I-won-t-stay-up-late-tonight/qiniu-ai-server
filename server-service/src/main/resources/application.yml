@@ -146,6 +146,8 @@ ali:
   audio:
     asr:
       api-key: sk-95513ded49764ba6a533d427797b6f20
+    tts:
+      api-key: sk-95513ded49764ba6a533d427797b6f20
 
 # 应用配置
 app:

@@ -1,4 +1,4 @@
-package com.qiniuai.chat.audiochat.helper.alibaba;
+package com.qiniuai.chat.audiochat.helper.alibaba.asr;
 
 import com.alibaba.dashscope.audio.asr.recognition.Recognition;
 import com.alibaba.dashscope.audio.asr.recognition.RecognitionParam;
@@ -15,6 +15,10 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * 识别语音文件
+ * 文档：https://help.aliyun.com/zh/model-studio/paraformer-real-time-speech-recognition-java-sdk?spm=a2c4g.11186623.0.0.767769ce9wWdZD#71aa9440f9f9e
+ */
 
 class AudioTextRealtimeRecognitionTask implements Runnable {
     private Path filepath;
