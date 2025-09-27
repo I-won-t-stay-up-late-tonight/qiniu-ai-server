@@ -68,4 +68,13 @@ public interface RoleMapper {
             "ORDER BY create_time DESC")
     List<Role> searchRoleByName(@Param("userId") long userId, @Param("name") String name);  // 添加@Param明确参数名
 
+    /**
+     * 根据角色ID查询角色信息
+     * @param roleId 角色ID（非空，必传）
+     * @return 角色实体（无数据时返回null）
+     */
+    @Select("SELECT id, role_name, role_desc, personality, background, is_builtin, voice " +
+            "FROM roles " +
+            "WHERE id = #{roleId}")
+    Role getById(@Param("roleId") Long roleId);
 }

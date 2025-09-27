@@ -22,6 +22,7 @@ public class DeepSeekController {
 
     // 注入服务层实例（依赖抽象，不依赖具体实现）
     private final DeepSeekService deepSeekService;
+    private final String systemPrompt = "你是一个专业的助手，请基于用户输入内容，用简洁明了的语言回答，回答长度不超过500字";
 
     /**
      * 非流式对话接口：接收用户输入，返回模型完整响应
@@ -31,8 +32,9 @@ public class DeepSeekController {
     @PostMapping("/chat")
     public ApiResult<String> chatWithModel(@RequestBody AiRequest request) {
         try {
+
             // 1. 调用服务层处理业务（Controller不做业务逻辑，只转发）
-            String modelResponse = deepSeekService.callDeepSeekModel(request.getUserContent());
+            String modelResponse = deepSeekService.callDeepSeekModel(request.getUserContent(),systemPrompt);
 
             // 2. 返回成功响应
             return ApiResult.success(modelResponse);

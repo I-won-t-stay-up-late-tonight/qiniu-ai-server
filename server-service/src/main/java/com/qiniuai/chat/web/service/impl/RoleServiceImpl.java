@@ -42,4 +42,9 @@ public class RoleServiceImpl implements RoleService {
         return roles;
     }
 
+    @Override
+    public Role getRoleById(Long roleId) {
+        return this.roleMapper.getById(roleId);
+    }
+
 }

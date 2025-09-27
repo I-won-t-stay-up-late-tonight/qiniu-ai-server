@@ -16,7 +16,9 @@ public class VoiceCallController {
     private final VoiceCallService voiceCallService;
 
     @PostMapping("/call")
-    public ResponseEntity<byte[]> call(@RequestParam("file") MultipartFile file) throws Exception {
-        return voiceCallService.voiceCall(file);
+    public ResponseEntity<byte[]> call(@RequestParam("file") MultipartFile file,
+                                       @RequestParam("roleId") Long roleId
+    ) throws Exception {
+        return voiceCallService.voiceCall(file, roleId);
     }
 }

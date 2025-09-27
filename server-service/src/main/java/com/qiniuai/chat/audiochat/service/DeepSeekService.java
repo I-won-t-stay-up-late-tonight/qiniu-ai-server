@@ -33,7 +33,7 @@ public class DeepSeekService {
      * @return 模型生成的响应文本
      * @throws Exception 调用异常（向上抛出，由Controller统一处理）
      */
-    public String callDeepSeekModel(String userContent) throws Exception {
+    public String callDeepSeekModel(String userContent, String promptWord) throws Exception {
         // 1. 业务参数校验（服务层自己校验，不依赖Controller）
         if (userContent == null || userContent.trim().isEmpty()) {
             log.warn("用户输入内容为空");
@@ -41,7 +41,7 @@ public class DeepSeekService {
         }
 
         // 2. 构建对话消息（系统提示词 + 用户输入）
-        List<Message> messages = buildChatMessages(userContent);
+        List<Message> messages = buildChatMessages(userContent, promptWord);
         log.debug("构建对话消息：{}", messages);
 
         // 3. 构建模型请求参数（非流式配置）
@@ -58,12 +58,12 @@ public class DeepSeekService {
     /**
      * 辅助方法：构建对话消息列表（系统提示词 + 用户输入）
      */
-    private List<Message> buildChatMessages(String userContent) {
+    private List<Message> buildChatMessages(String userContent,String promptWord) {
         List<Message> messages = new ArrayList<>();
         // 系统提示词（固定角色：SYSTEM）
         messages.add(Message.builder()
                 .role(Role.SYSTEM.getValue())
-                .content(systemPrompt)
+                .content(promptWord)
                 .build());
         // 用户输入（角色：USER）
         messages.add(Message.builder()
