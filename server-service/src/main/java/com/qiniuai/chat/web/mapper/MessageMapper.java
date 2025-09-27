@@ -1,8 +1,6 @@
 package com.qiniuai.chat.web.mapper;
 import com.qiniuai.chat.web.entity.pojo.DbMessage;
-import org.apache.ibatis.annotations.Mapper;
-import org.apache.ibatis.annotations.Insert;
-import org.apache.ibatis.annotations.Select;
+import org.apache.ibatis.annotations.*;
 
 import java.util.List;
 
@@ -31,12 +29,16 @@ public interface MessageMapper {
     /*
      * @dbMsg 消息实体
      */
-    @Insert("INSERT INTO messages (conversation_id, role, content, send_time) " +
-            "VALUES (#{conversationId}, #{role}, #{content}, #{sendTime})")
-    int insertMessage(DbMessage dbMsg);
+    @Insert("INSERT INTO messages(conversation_id, role, content, send_time, url) " +
+            "VALUES(#{conversationId}, #{role}, #{content}, #{sendTime}, #{url})")
+    @Options(useGeneratedKeys = true, keyProperty = "id")
+    void insertMessage(DbMessage dbMsg);
 
     /*
      * @dbMessages 消息实体列表
      */
     void batchInsertMessage(List<DbMessage> dbMessages);
+
+    // 新增方法：更新消息的音频URL
+    void updateAudioUrl(@Param("id") Long id, @Param("url") String url);
 }

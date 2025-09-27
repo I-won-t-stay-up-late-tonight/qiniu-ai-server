@@ -36,21 +36,17 @@ public class ConversationServiceImpl implements ConversationService {
     private static final Long DEFAULT_ROLE_ID = 1L;
 
     @Override
-    public String createConversation(Long userId, String conversationName) {
-        Long conversationId = 0L;
+    public Long createConversation(Long userId, String conversationName) {
         if (userId == null) {
             throw new IllegalArgumentException("用户ID（userId）不能为空");
         }
-
-        try {
-            int affectedRows = conversationMapper.insertConversation(userId, conversationName);
-            if (affectedRows != 1){
-                throw new IllegalArgumentException("插入失败");
-            }
-        }catch (DuplicateKeyException e){
-            return "会话名称已存在";
-        }
-        return "创建成功";
+        Conversation conversation = new Conversation();
+        conversation.setUserId(userId);
+        conversation.setConversationName(conversationName);
+        conversationMapper.insertConversation(conversation);
+        Long id = conversation.getId();
+        System.out.println("id = " + id);
+        return id;
     }
 
     /*
@@ -74,15 +70,16 @@ public class ConversationServiceImpl implements ConversationService {
         }
 
         // 2. 创建会话
-        int conversationRows = conversationMapper.insertConversation(
-                userId,
-                conversationName
-        );
-        if (conversationRows != 1) {
+        Conversation conversation = new Conversation();
+        conversation.setUserId(userId);
+        conversation.setConversationName(conversationName);
+        conversationMapper.insertConversation(conversation);
+
+        if (conversation.getId() == null) {
             throw new RuntimeException("创建会话失败，未生成会话ID");
         }
 
-        long conversationId = conversationMapper.selectConversationIdByUserIdAndName(userId, conversationName);
+        long conversationId = conversation.getId();
 
         // 3. 绑定会话与角色（插入关联关系）
         int relationRows = conversationRoleRelationMapper.insertConversationRoleRelation(

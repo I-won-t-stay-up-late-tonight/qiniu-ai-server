@@ -19,7 +19,7 @@ import java.util.List;
 
 public interface ConversationService {
 
-    String createConversation(Long userId, String conversationService);
+    Long createConversation(Long userId, String conversationService);
 
     Long createConversationAndRole(Long userId, String conversationName, Long roleId);
 

@@ -19,16 +19,13 @@ public interface ConversationMapper {
 
     /**
      * 插入会话并返回自增ID
-     * @param userId 用户ID
-     * @param conversationName 会话名称
+     * @param conversation 会话
      * @return 受影响行数（1=成功）
      */
-    @Insert("INSERT INTO conversations (user_id, conversation_name) " +
-            "VALUES (#{userId}, #{conversationName})")
-    int insertConversation(
-            @Param("userId") Long userId,
-            @Param("conversationName") String conversationName
-    );
+    @Insert("INSERT INTO conversations (user_id, conversation_name, create_time) " +
+            "VALUES (#{userId}, #{conversationName}, #{createTime})")
+    @Options(useGeneratedKeys = true, keyProperty = "id")
+    void insertConversation(Conversation conversation);
 
 
     /**
