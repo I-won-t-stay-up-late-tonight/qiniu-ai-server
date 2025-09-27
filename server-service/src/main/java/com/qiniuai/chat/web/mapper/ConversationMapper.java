@@ -78,16 +78,10 @@ public interface ConversationMapper {
             "m.send_time AS sendTime, " +
             "m.url " +
             "FROM messages m " +
-            "WHERE m.conversation_id = ( " +
-            "   SELECT c.id " +
-            "   FROM conversations c " +
-            "   WHERE c.user_id = #{userId} " +   // 匹配用户ID
-            "   AND c.conversation_name = #{conversationName} " + // 匹配会话名称
-            ") " +
+            "WHERE m.conversation_id = #{conversationId} " +
             "ORDER BY m.send_time DESC LIMIT 30 ") // 按消息ID升序排列（也可按时间排序，需表中有时间字段）
     List<DbMessage> searchMessageHistory(
-            @Param("userId") Long userId,
-            @Param("conversationName") String conversationName
+            @Param("conversationId") long conversationId
     );
 }
 

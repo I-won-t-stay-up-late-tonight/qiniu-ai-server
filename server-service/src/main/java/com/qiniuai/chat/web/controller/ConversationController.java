@@ -44,13 +44,13 @@ public class ConversationController {
      * 创建会话
      */
     @PostMapping("/createConversationAndRole")
-    public ApiResult<String> createConversationAndRole(
+    public ApiResult<Long> createConversationAndRole(
             @Validated @RequestParam("userId") Long userId, @Validated @RequestParam(value = "conversationName", required = false) String conversationName, @RequestParam(value = "roleId", required = false)Long roleId) {
         if (conversationName == null || conversationName.trim().isEmpty()) {
             conversationName = "默认会话";
         }
-        String res = conversationService.createConversationAndRole(userId, conversationName, roleId);
-        return res != null ? ApiResult.success(res) : ApiResult.fail(res);
+        Long res = conversationService.createConversationAndRole(userId, conversationName, roleId);
+        return res != null ? ApiResult.success(res) : ApiResult.fail("创建失败");
 
     }
 
@@ -75,9 +75,8 @@ public class ConversationController {
      */
     @PostMapping("/searchHistoryMessage")
     public ApiResult<List<DbMessage>> searchHistoryMessage(
-            @Validated @RequestParam("userId") Long userId, @Validated @RequestParam(value = "conversationName") String conversationName) {
-
-        List<DbMessage> historyMessage = conversationService.searchHistoryMessage(userId, conversationName);
+        @Validated @RequestParam(value = "conversationId") Long conversationId) {
+        List<DbMessage> historyMessage = conversationService.searchHistoryMessage(conversationId);
         return ApiResult.success(historyMessage);
     }
 }
