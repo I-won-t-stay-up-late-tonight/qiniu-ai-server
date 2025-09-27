@@ -1,0 +1,129 @@
+version: '3.8'
+
+services:
+  # 主应用服务
+  qiniu-ai-service:
+    build: .
+    container_name: qiniu-ai-service
+    ports:
+      - "9002:9002"
+    environment:
+      - TZ=Asia/Shanghai
+    volumes:
+      - ./config/application.yml:/config/application.yml
+      - ./logs:/app/logs
+      - ./temp-audio:/app/temp-audio
+    depends_on:
+      mysql:
+        condition: service_healthy
+      mongodb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - qiniu-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:9002/actuator/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # MySQL 服务
+  mysql:
+    image: registry.cn-hangzhou.aliyuncs.com/zhengqing/mysql:8.0
+    container_name: qiniu-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root123456
+      MYSQL_DATABASE: qiniuchat
+      TZ: Asia/Shanghai
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./init-scripts/mysql-init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - qiniu-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot123456"]
+      timeout: 20s
+      retries: 10
+      start_period: 30s
+    restart: unless-stopped
+
+  # MongoDB 服务
+  mongodb:
+    image: registry.cn-hangzhou.aliyuncs.com/zhengqing/mongo:4.4.6
+    container_name: qiniu-mongodb
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: 123456
+      MONGO_INITDB_DATABASE: hnit_server
+      TZ: Asia/Shanghai
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+      - ./init-scripts/mongo-init.js:/docker-entrypoint-initdb.d/init.js
+    networks:
+      - qiniu-network
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test -u root -p 123456 --quiet
+      timeout: 20s
+      retries: 10
+      start_period: 30s
+    restart: unless-stopped
+
+  # Redis 服务
+  redis:
+    image: registry.cn-hangzhou.aliyuncs.com/zhengqing/redis:6.0.8
+    container_name: qiniu-redis
+    environment:
+      TZ: Asia/Shanghai
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    networks:
+      - qiniu-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      timeout: 10s
+      retries: 5
+    restart: unless-stopped
+
+  # RabbitMQ 服务
+  rabbitmq:
+    image: registry.cn-hangzhou.aliyuncs.com/zhengqing/rabbitmq:3.7.8-management
+    container_name: qiniu-rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: admin
+      RABBITMQ_DEFAULT_PASS: Aa123456==
+      TZ: Asia/Shanghai
+    ports:
+      - "5672:5672"
+      - "15672:15672"  # RabbitMQ 管理界面
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+      - ./init-scripts/rabbitmq-definitions.json:/etc/rabbitmq/definitions.json
+    networks:
+      - qiniu-network
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      timeout: 30s
+      retries: 5
+      start_period: 30s
+    restart: unless-stopped
+
+volumes:
+  mysql_data:
+  mongodb_data:
+  redis_data:
+  rabbitmq_data:
+
+networks:
+  qiniu-network:
+    driver: bridge

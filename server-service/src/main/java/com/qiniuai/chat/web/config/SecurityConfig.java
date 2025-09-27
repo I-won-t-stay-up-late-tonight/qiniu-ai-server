@@ -1,6 +1,5 @@
 package com.qiniuai.chat.web.config;
 
-import com.aliyuncs.utils.StringUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hnit.server.common.Constants;
 import com.qiniuai.chat.web.service.UserService;
@@ -8,6 +7,7 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
