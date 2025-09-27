@@ -7,7 +7,7 @@ DOCKER_COMPOSE := docker-compose
 DOCKER := docker
 
 # JAR file name (modify according to your actual file name)
-JAR_FILE := qiniu-ai-service.jar
+JAR_FILE := server-start-0.0.1-SNAPSHOT.jar
 
 .PHONY: help build start stop restart logs clean purge status shell health-check backup restore deploy
 
@@ -50,7 +50,8 @@ build: check-jar
 	@echo "✓ Docker images built successfully"
 
 # Start all services
-start: check-jar
+start:
+	@cd app-meta/script
 	@echo "Starting all services..."
 	@mkdir -p logs temp-audio
 	@$(DOCKER_COMPOSE) up -d

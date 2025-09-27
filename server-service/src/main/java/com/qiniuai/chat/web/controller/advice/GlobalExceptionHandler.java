@@ -1,6 +1,5 @@
 package com.qiniuai.chat.web.controller.advice;
 
-import com.google.common.base.Throwables;
 import com.hnit.server.dto.ApiResult;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -92,10 +91,11 @@ public class GlobalExceptionHandler {
    */
   private void printErr(Exception e, HttpServletRequest request) {
     log.error(
-        "[{}] | 服务器异常, 请求路径: {}, 方法: {}",
-        Throwables.getStackTraceAsString(e),
+        "请求路径: {}, 方法: {} | unexpected error: {}",
         request.getRequestURI(),
-        request.getMethod()
+        request.getMethod(),
+        e.getMessage(),
+        e
     );
   }
 
@@ -104,9 +104,9 @@ public class GlobalExceptionHandler {
    */
   private void logErr(Exception e) {
     log.error(
-        "[{}] | unexpected error: {}",
-        Throwables.getStackTraceAsString(e),
-        e.getMessage()
+        "unexpected error: {}",
+        e.getMessage(),
+        e
     );
   }
 
@@ -115,11 +115,11 @@ public class GlobalExceptionHandler {
    */
   private void logErr(Exception e, HttpServletRequest request) {
     log.error(
-        "[{}] | unexpected error: {} | 请求路径: {}, 方法: {}",
-        Throwables.getStackTraceAsString(e),
-        e.getMessage(),
+        "请求路径: {}, 方法: {} | unexpected error: {}",
         request.getRequestURI(),
-        request.getMethod()
+        request.getMethod(),
+        e.getMessage(),
+        e
     );
   }
 }
