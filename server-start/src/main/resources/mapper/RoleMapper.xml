@@ -19,14 +19,15 @@
         voice
         FROM roles
         WHERE
-        <if test="param.roleId != null  || param.roleId != ''">
-            id = #{param.roleId}
+        <!-- 每个条件前加AND，由where标签处理首个条件的多余AND -->
+        <if test="param.roleId != null">
+            AND id = #{param.roleId}
         </if>
-        <if test="param.roleName != null  || param.userId != ''">
-            role_name LIKE CONCAT('%', #{param.roleName}, '%')
+        <if test="param.roleName != null and param.roleName != ''">
+            AND role_name LIKE CONCAT('%', #{param.roleName}, '%')
         </if>
-        <if test="param.userId != null || param.userId != ''">
-            user_id = #{param.userId}
+        <if test="param.userId != null and param.userId != ''">
+            AND user_id = #{param.userId}
         </if>
     </select>
 </mapper>
