@@ -30,13 +30,13 @@ public class ConversationController {
      * 创建会话
      */
     @PostMapping("/createConversation")
-    public ApiResult<String> createConversation(
+    public ApiResult<Long> createConversation(
             @Validated @RequestParam("userId") Long userId, @Validated @RequestParam(value = "conversationName", required = false) String conversationName) {
         if (conversationName == null || conversationName.trim().isEmpty()) {
             conversationName = "默认会话";
         }
-        String res = conversationService.createConversation(userId, conversationName);
-        return res != null ? ApiResult.success(res) : ApiResult.fail(res);
+        Long id = conversationService.createConversation(userId, conversationName);
+        return id != null ? ApiResult.success(id) : ApiResult.fail("创建失败");
 
     }
     /*
