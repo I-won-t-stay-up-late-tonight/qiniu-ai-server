@@ -27,5 +27,7 @@ public class DbMessage {
 
     private LocalDateTime sendTime;
 
+    private String url;
+
 }
 

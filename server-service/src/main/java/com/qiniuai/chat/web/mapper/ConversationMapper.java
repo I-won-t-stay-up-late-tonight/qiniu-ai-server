@@ -1,6 +1,7 @@
 package com.qiniuai.chat.web.mapper;
 
 import com.qiniuai.chat.web.entity.pojo.Conversation;
+import com.qiniuai.chat.web.entity.pojo.DbMessage;
 import org.apache.ibatis.annotations.*;
 
 import java.util.List;
@@ -61,5 +62,26 @@ public interface ConversationMapper {
             "WHERE user_id = #{userId} " +  // 按用户ID筛选
             "ORDER BY update_time DESC")    // 按更新时间倒序排列，最新的会话在前
     List<Conversation> searchConversationByUserId(@Param("userId") long userId);
+
+
+    /*
+     * @Date 22:01 2025/9/26
+     * @Description 查找符合要求的聊天信息
+     *
+     */
+
+    @Select("SELECT " +
+            "m.id, " +
+            "m.conversation_id AS conversationId, " + // 字段映射为实体类的驼峰属性
+            "m.role, " +
+            "m.content, " +
+            "m.send_time AS sendTime, " +
+            "m.url " +
+            "FROM messages m " +
+            "WHERE m.conversation_id = #{conversationId} " +
+            "ORDER BY m.send_time DESC LIMIT 30 ") // 按消息ID升序排列（也可按时间排序，需表中有时间字段）
+    List<DbMessage> searchMessageHistory(
+            @Param("conversationId") long conversationId
+    );
 }
 

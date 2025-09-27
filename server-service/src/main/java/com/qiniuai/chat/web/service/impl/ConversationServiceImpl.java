@@ -1,6 +1,7 @@
 package com.qiniuai.chat.web.service.impl;
 
 import com.qiniuai.chat.web.entity.pojo.Conversation;
+import com.qiniuai.chat.web.entity.pojo.DbMessage;
 import com.qiniuai.chat.web.entity.pojo.Role;
 import com.qiniuai.chat.web.mapper.ConversationMapper;
 import com.qiniuai.chat.web.mapper.ConversationRoleRelationMapper;
@@ -60,7 +61,7 @@ public class ConversationServiceImpl implements ConversationService {
      */
 
     @Override
-    public String createConversationAndRole(Long userId, String conversationName, Long roleId) {
+    public Long createConversationAndRole(Long userId, String conversationName, Long roleId) {
 
         // 1. 校验参数（避免无效输入）
         if (userId == null) {
@@ -72,7 +73,7 @@ public class ConversationServiceImpl implements ConversationService {
             roleId = roleMapper.selectById(DEFAULT_ROLE_ID).getId();
         }
 
-        // 2. 创建会话并获取自增ID
+        // 2. 创建会话
         int conversationRows = conversationMapper.insertConversation(
                 userId,
                 conversationName
@@ -92,13 +93,20 @@ public class ConversationServiceImpl implements ConversationService {
             throw new RuntimeException("会话与角色绑定失败");
         }
 
-        return "创建成功";
+        return Long.valueOf(conversationId);
     }
 
     @Override
     public List<Conversation> searchConversationByUserId(long userId) {
         List<Conversation> conversations = conversationMapper.searchConversationByUserId(userId);
         return conversations;
+    }
+
+
+    @Override
+    public List<DbMessage> searchHistoryMessage(long conversationId) {
+        List<DbMessage> historyMessage = conversationMapper.searchMessageHistory(conversationId);
+        return historyMessage;
     }
 
 }
