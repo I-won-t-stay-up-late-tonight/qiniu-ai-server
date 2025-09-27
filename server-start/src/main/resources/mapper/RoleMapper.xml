@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.qiniuai.chat.web.mapper.RoleMapper">
+
+
+    <select id="queryRole" resultType="com.qiniuai.chat.web.entity.pojo.Role">
+        SELECT
+        id,
+        role_name AS roleName,
+        role_desc AS roleDesc,
+        personality,
+        background,
+        user_id AS userId,
+        avatar_url AS avatarUrl,
+        create_time AS createTime,
+        update_time AS updateTime,
+        is_builtin AS isBuiltin,
+        voice
+        FROM roles
+        <where>
+            <if test="param.roleId != null">
+                AND id = #{param.roleId}
+            </if>
+            <if test="param.roleName != null and param.roleName != ''">
+                AND role_name LIKE CONCAT('%', #{param.roleName}, '%')
+            </if>
+            <if test="param.userId != null  and param.userId != ''">
+                AND user_id = #{param.userId}
+            </if>
+        </where>
+    </select>
+</mapper>

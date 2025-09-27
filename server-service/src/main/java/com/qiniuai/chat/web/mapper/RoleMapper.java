@@ -81,5 +81,5 @@ public interface RoleMapper {
     Role getById(@Param("roleId") Long roleId);
 
 
-//    List<Role> selectList(RulesDto rulesDto);
+    List<Role> queryRole(@Param("param") RulesDto rulesDto);
 }

@@ -52,9 +52,9 @@ public class RoleServiceImpl implements RoleService {
         return this.roleMapper.getById(roleId);
     }
 
-//    @Override
-//    public List<Role> queryRole(RulesDto rulesDto) {
-//        return this.roleMapper.selectList(rulesDto);
-//    }
+    @Override
+    public List<Role> queryRole(RulesDto rulesDto) {
+        return this.roleMapper.queryRole(rulesDto);
+    }
 
 }
