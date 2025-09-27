@@ -9,11 +9,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class RulesDto {
 
-    private Long roleId;
+    private Integer roleId;
 
     private String roleName;
 
-    private String roleDesc;
-
-    private Long userId;
+    private String userId;
 }

@@ -1,6 +1,7 @@
 package com.qiniuai.chat.web.controller;
 
 import com.hnit.server.dto.ApiResult;
+import com.qiniuai.chat.web.dto.RulesDto;
 import com.qiniuai.chat.web.entity.pojo.Role;
 import com.qiniuai.chat.web.service.RoleService;
 import java.util.List;
@@ -46,10 +47,10 @@ public class RoleController {
         return ApiResult.success(roles);
     }
 
-//    @PostMapping("/queryRole")
-//    public ApiResult<List<Role>> queryRole(@RequestBody RulesDto rulesDto) {
-//        List<Role> roles = roleService.queryRole(rulesDto);
-//        return ApiResult.success(roles);
-//    }
+    @PostMapping("/queryRole")
+    public ApiResult<List<Role>> queryRole(@RequestBody RulesDto rulesDto) {
+        List<Role> roles = roleService.queryRole(rulesDto);
+        return ApiResult.success(roles);
+    }
 
 }

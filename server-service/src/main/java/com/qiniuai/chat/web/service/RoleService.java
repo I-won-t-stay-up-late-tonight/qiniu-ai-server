@@ -24,6 +24,6 @@ public interface RoleService {
 
     Role getRoleById(Long roleId);
 
-//    List<Role> queryRole(RulesDto rulesDto);
+    List<Role> queryRole(RulesDto rulesDto);
 
 }
