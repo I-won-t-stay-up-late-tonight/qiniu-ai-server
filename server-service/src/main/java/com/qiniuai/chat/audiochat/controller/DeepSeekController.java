@@ -1,70 +1,51 @@
 package com.qiniuai.chat.audiochat.controller;
 
-import com.qiniuai.chat.audiochat.entity.ChatMessage;
-import com.qiniuai.chat.audiochat.entity.ChatRequest;
+
+import com.hnit.server.dto.ApiResult;
+import com.qiniuai.chat.audiochat.entity.AiRequest;
 import com.qiniuai.chat.audiochat.service.DeepSeekService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import reactor.core.publisher.Mono;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
+/**
+ * 阿里云 DashScope DeepSeek 模型控制器（非流式）
+ */
 @RestController
-@RequestMapping("/api/chat")
+@RequestMapping("/api/ai")
+@RequiredArgsConstructor // 构造器注入（推荐）
+@Slf4j
 public class DeepSeekController {
 
-    @Autowired
-    private DeepSeekService deepSeekService;
+    // 注入服务层实例（依赖抽象，不依赖具体实现）
+    private final DeepSeekService deepSeekService;
 
-    @PostMapping("/conversation")
-    public Mono<ResponseEntity<Map<String, Object>>> chatConversation() {
-        List<ChatMessage> messages = new ArrayList<>();
+    /**
+     * 非流式对话接口：接收用户输入，返回模型完整响应
+     * @param request 前端请求（包含用户输入文本）
+     * @return 统一响应模型（成功/失败结果）
+     */
+    @PostMapping("/chat")
+    public ApiResult<String> chatWithModel(@RequestBody AiRequest request) {
+        try {
+            // 1. 调用服务层处理业务（Controller不做业务逻辑，只转发）
+            String modelResponse = deepSeekService.callDeepSeekModel(request.getUserContent());
 
-        // Round 1
-        messages.add(new ChatMessage("user", "9.11 and 9.8, which is greater?"));
+            // 2. 返回成功响应
+            return ApiResult.success(modelResponse);
 
-        return deepSeekService.chatWithDeepSeek(new ArrayList<>(messages))
-                .flatMap(round1Response -> {
-                    // 添加第一轮响应到消息历史
-                    messages.add(new ChatMessage("assistant", round1Response));
+        } catch (IllegalArgumentException e) {
+            // 2. 处理参数错误（如用户输入为空）
+            log.warn("请求参数错误：{}", e.getMessage());
+            return ApiResult.fail(400, e.getMessage());
 
-                    // Round 2
-                    messages.add(new ChatMessage("user", "How many Rs are there in the word 'strawberry'?"));
-
-                    return deepSeekService.chatWithDeepSeek(new ArrayList<>(messages))
-                            .map(round2Response -> {
-                                Map<String, Object> result = new HashMap<>();
-                                result.put("round1", round1Response);
-                                result.put("round2", round2Response);
-                                return ResponseEntity.ok(result);
-                            });
-                })
-                .onErrorResume(e -> {
-                    Map<String, Object> error = new HashMap<>();
-                    error.put("error", e.getMessage());
-                    return Mono.just(ResponseEntity.status(500).body(error));
-                });
-    }
-
-    @PostMapping("/single")
-    public Mono<ResponseEntity<Map<String, Object>>> singleChat(@RequestBody ChatRequest request) {
-        return deepSeekService.chatWithDeepSeek(request.getMessages())
-                .map(response -> {
-                    Map<String, Object> result = new HashMap<>();
-                    result.put("response", response);
-                    return ResponseEntity.ok(result);
-                })
-                .onErrorResume(e -> {
-                    Map<String, Object> error = new HashMap<>();
-                    error.put("error", e.getMessage());
-                    return Mono.just(ResponseEntity.status(500).body(error));
-                });
+        } catch (Exception e) {
+            // 3. 处理其他业务异常（如模型调用失败）
+            log.error("模型对话接口异常", e);
+            return ApiResult.fail(500, "调用模型失败：" + e.getMessage());
+        }
     }
 }
