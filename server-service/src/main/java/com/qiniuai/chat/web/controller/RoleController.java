@@ -41,7 +41,7 @@ public class RoleController {
      */
 
     @PostMapping("/searchRoleByName")
-    public ApiResult<List<Role>> searchRoleByName(@Validated long userId, @Validated String name) {
+    public ApiResult<List<Role>> searchRoleByName(@Validated long userId, @Validated @RequestParam(value = "name", required = false) String name) {
 
         List<Role> roles = roleService.searchRoleByName(userId, name);
         return ApiResult.success(roles);

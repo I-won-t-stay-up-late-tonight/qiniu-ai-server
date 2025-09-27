@@ -1,6 +1,7 @@
 package com.qiniuai.chat.web.service.impl;
 
 import com.qiniuai.chat.web.entity.pojo.Conversation;
+import com.qiniuai.chat.web.entity.pojo.DbMessage;
 import com.qiniuai.chat.web.entity.pojo.Role;
 import com.qiniuai.chat.web.mapper.ConversationMapper;
 import com.qiniuai.chat.web.mapper.ConversationRoleRelationMapper;
@@ -99,6 +100,13 @@ public class ConversationServiceImpl implements ConversationService {
     public List<Conversation> searchConversationByUserId(long userId) {
         List<Conversation> conversations = conversationMapper.searchConversationByUserId(userId);
         return conversations;
+    }
+
+
+    @Override
+    public List<DbMessage> searchHistoryMessage(long userId, String conversationName) {
+        List<DbMessage> historyMessage = conversationMapper.searchMessageHistory(userId, conversationName);
+        return historyMessage;
     }
 
 }
