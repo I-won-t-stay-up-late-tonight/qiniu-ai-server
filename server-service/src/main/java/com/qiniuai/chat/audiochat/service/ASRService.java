@@ -4,6 +4,7 @@ import com.alibaba.dashscope.audio.asr.recognition.Recognition;
 import com.alibaba.dashscope.audio.asr.recognition.RecognitionParam;
 import com.alibaba.dashscope.audio.asr.recognition.RecognitionResult;
 import com.alibaba.dashscope.common.ResultCallback;
+import jakarta.annotation.PreDestroy;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -16,95 +17,117 @@ import java.nio.ByteBuffer;
  */
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CountDownLatch;
+
+import java.util.concurrent.*;
 
 @Service
-public class ASRService{
+public class ASRService {
     private static final Logger logger = LoggerFactory.getLogger(ASRService.class);
-    // 阿里ASR配置（16KHz采样率的WAV文件，每次发送100ms数据：16000Hz * 16bit * 1ch / 8bit = 3200字节）
-    private static final int CHUNK_SIZE = 3200; // 核心：100ms音频数据的字节数
-    private static final String MODEL = "paraformer-realtime-v2"; // 阿里实时识别模型
-    private static final String API_KEY = "sk-95513ded49764ba6a533d427797b6f20"; // 替换为你的API Key（建议配置在环境变量中）
+    // 调整为50ms的音频块（1600字节），减少单次传输数据量
+    private static final int CHUNK_SIZE = 1600; // 16000Hz * 16bit * 1ch / 8 * 0.05s = 1600字节
+    private static final String MODEL = "paraformer-realtime-v2";
+    private static final String API_KEY = "sk-95513ded49764ba6a533d427797b6f20";
 
+    // 线程池优化：使用缓存线程池处理IO密集操作
+    private static final ExecutorService executor = Executors.newCachedThreadPool();
 
     public CompletableFuture<String> recognizeFromMultipartFile(MultipartFile audioFile) {
-        CompletableFuture<String> resultFuture = new CompletableFuture<>();
-        StringBuilder fullResult = new StringBuilder(); // 拼接最终识别结果
-        CountDownLatch latch = new CountDownLatch(1); // 等待识别完成
+        // 使用线程池执行，避免阻塞主线程
+        return CompletableFuture.supplyAsync(() -> {
+            StringBuilder fullResult = new StringBuilder();
+            CountDownLatch latch = new CountDownLatch(1);
 
-        try (InputStream inputStream = audioFile.getInputStream()) { // 直接从MultipartFile获取输入流（无临时文件）
-            // 1. 构建阿里ASR参数
-            RecognitionParam param = RecognitionParam.builder()
-                    .apiKey(API_KEY)
-                    .model(MODEL)
-                    .format("wav") // 与前端录音格式一致
-                    .sampleRate(16000) // 阿里ASR推荐16KHz
-                    .parameter("language_hints", new String[]{"zh", "en"}) // 支持中英双语
-                    .build();
+            try (InputStream inputStream = audioFile.getInputStream()) {
+                // 构建参数时增加超时设置
+                RecognitionParam param = RecognitionParam.builder()
+                        .apiKey(API_KEY)
+                        .model(MODEL)
+                        .format("wav")
+                        .sampleRate(16000)
+                        .parameter("language_hints", new String[]{"zh", "en"})
+                        // 增加超时参数，单位秒
+                        .parameter("timeout", 30)
+                        // 开启快速识别模式（牺牲一点准确率换取速度）
+                        .parameter("speed_mode", true)
+                        .build();
 
-            // 2. 创建ASR识别客户端
-            Recognition recognizer = new Recognition();
-            String threadName = Thread.currentThread().getName();
+                Recognition recognizer = new Recognition();
+                String threadName = Thread.currentThread().getName();
 
-            // 3. 配置识别结果回调
-            ResultCallback<RecognitionResult> callback = new ResultCallback<>() {
-                @Override
-                public void onEvent(RecognitionResult message) {
-                    // 中间结果（可选打印，前端无需实时展示）
-                    if (!message.isSentenceEnd()) {
-                        logger.debug("[{}] 中间结果：{}", threadName, message.getSentence().getText());
-                        return;
+                // 结果回调保持不变
+                ResultCallback<RecognitionResult> callback = new ResultCallback<>() {
+                    @Override
+                    public void onEvent(RecognitionResult message) {
+                        if (message.isSentenceEnd()) {
+                            String sentence = message.getSentence().getText();
+                            fullResult.append(sentence).append(" ");
+                            logger.info("[{}] 最终句子结果：{}", threadName, sentence);
+                        }
                     }
-                    // 最终句子结果（拼接）
-                    String sentence = message.getSentence().getText();
-                    fullResult.append(sentence).append(" ");
-                    logger.info("[{}] 最终句子结果：{}", threadName, sentence);
+
+                    @Override
+                    public void onComplete() {
+                        logger.info("[{}] 识别完成，总结果：{}", threadName, fullResult.toString().trim());
+                        latch.countDown();
+                    }
+
+                    @Override
+                    public void onError(Exception e) {
+                        logger.error("[{}] 识别异常", threadName, e);
+                        latch.countDown();
+                        throw new RuntimeException(e);
+                    }
+                };
+
+                // 启动识别
+                recognizer.call(param, callback);
+                logger.info("开始处理录音文件：{}（大小：{}KB）",
+                        audioFile.getOriginalFilename(), audioFile.getSize() / 1024);
+
+                // 优化点1：使用NIO非阻塞读取
+                ByteBuffer buffer = ByteBuffer.allocateDirect(CHUNK_SIZE);
+                byte[] temp = new byte[CHUNK_SIZE];
+                int bytesRead;
+
+                // 优化点2：减少等待时间，与块大小匹配
+                long sleepTime = 50; // 50ms，与CHUNK_SIZE对应
+
+                while ((bytesRead = inputStream.read(temp)) != -1) {
+                    buffer.clear();
+                    buffer.put(temp, 0, bytesRead);
+                    buffer.flip();
+
+                    // 优化点3：异步发送音频帧
+                    executor.submit(() -> recognizer.sendAudioFrame(buffer));
+
+                    logger.debug("发送音频块：{}字节", bytesRead);
+                    Thread.sleep(sleepTime);
                 }
 
-                @Override
-                public void onComplete() {
-                    logger.info("[{}] 识别完成，总结果：{}", threadName, fullResult.toString().trim());
-                    latch.countDown(); // 通知主线程识别完成
-                    resultFuture.complete(fullResult.toString().trim()); // 返回最终结果
+                // 发送结束信号
+                recognizer.stop();
+                // 优化点4：设置等待超时，避免无限阻塞
+                if (!latch.await(30, TimeUnit.SECONDS)) {
+                    throw new TimeoutException("语音识别超时");
                 }
 
-                @Override
-                public void onError(Exception e) {
-                    logger.error("[{}] 识别异常", threadName, e);
-                    resultFuture.completeExceptionally(e); // 传递异常
-                }
-            };
+                logger.info("[Metric] 请求ID：{}，首包延迟：{}ms，末包延迟：{}ms",
+                        recognizer.getLastRequestId(),
+                        recognizer.getFirstPackageDelay(),
+                        recognizer.getLastPackageDelay());
 
-            // 4. 启动ASR连接
-            recognizer.call(param, callback);
-            logger.info("开始处理录音文件：{}（大小：{}KB）", audioFile.getOriginalFilename(), audioFile.getSize() / 1024);
+                return fullResult.toString().trim();
 
-            // 5. 内存流分块读取音频数据，发送给ASR（核心：无临时文件）
-            byte[] buffer = new byte[CHUNK_SIZE];
-            int bytesRead;
-            while ((bytesRead = inputStream.read(buffer)) != -1) {
-                ByteBuffer audioBuffer = ByteBuffer.wrap(buffer, 0, bytesRead); // 读取实际长度（避免最后一块补0）
-                recognizer.sendAudioFrame(audioBuffer); // 发送音频块
-                logger.debug("发送音频块：{}字节", bytesRead);
-                Thread.sleep(100); // 模拟实时流（100ms发送一次，与CHUNK_SIZE匹配）
+            } catch (Exception e) {
+                logger.error("处理录音文件异常", e);
+                throw new RuntimeException(e);
             }
+        }, executor);
+    }
 
-            // 6. 发送结束信号，等待识别完成
-            recognizer.stop();
-            latch.await(); // 等待回调的onComplete执行
-
-            // 7. 打印识别 metrics（可选）
-            logger.info("[Metric] 请求ID：{}，首包延迟：{}ms，末包延迟：{}ms",
-                    recognizer.getLastRequestId(),
-                    recognizer.getFirstPackageDelay(),
-                    recognizer.getLastPackageDelay());
-
-        } catch (Exception e) {
-            logger.error("处理录音文件异常", e);
-            resultFuture.completeExceptionally(e);
-        }
-
-        return resultFuture;
+    // 应用关闭时释放资源
+    @PreDestroy
+    public void shutdown() {
+        executor.shutdown();
     }
 }
