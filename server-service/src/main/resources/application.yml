@@ -141,6 +141,13 @@ third-party:
     voice-conversion:
       url: https://api.xfyun.cn/v1/service/v1/tts/voice_conversion
 
+#阿里语音平台
+ali:
+  audio:
+    asr:
+      api-key: sk-95513ded49764ba6a533d427797b6f20
+    tts:
+      api-key: sk-95513ded49764ba6a533d427797b6f20
 
 # 应用配置
 app:
@@ -223,11 +230,6 @@ audio:
 
 
 # 日志配置
-#阿里语音平台
-ali:
-  audio:
-    asr:
-      api-key: sk-95513ded49764ba6a533d427797b6f20
 logging:
   level:
     root: INFO # 根日志级别
