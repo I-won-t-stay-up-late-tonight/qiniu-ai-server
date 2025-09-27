@@ -1,5 +1,7 @@
 package com.qiniuai.chat.web.service.impl;
 
+import com.qiniu.util.StringUtils;
+import com.qiniuai.chat.web.dto.ConversationAndRoleDto;
 import com.qiniuai.chat.web.entity.pojo.Conversation;
 import com.qiniuai.chat.web.entity.pojo.DbMessage;
 import com.qiniuai.chat.web.entity.pojo.Role;
@@ -8,9 +10,7 @@ import com.qiniuai.chat.web.mapper.ConversationRoleRelationMapper;
 import com.qiniuai.chat.web.mapper.RoleMapper;
 import com.qiniuai.chat.web.service.ConversationService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
-
 import java.util.List;
 
 /**
@@ -36,7 +36,7 @@ public class ConversationServiceImpl implements ConversationService {
     private static final Long DEFAULT_ROLE_ID = 1L;
 
     @Override
-    public Long createConversation(Long userId, String conversationName) {
+    public Long createConversation(String userId, String conversationName) {
         if (userId == null) {
             throw new IllegalArgumentException("用户ID（userId）不能为空");
         }
@@ -57,22 +57,19 @@ public class ConversationServiceImpl implements ConversationService {
      */
 
     @Override
-    public Long createConversationAndRole(Long userId, String conversationName, Long roleId) {
-
-        // 1. 校验参数（避免无效输入）
-        if (userId == null) {
+    public Long createConversationAndRole(ConversationAndRoleDto conversationAndRoleDto) {
+        if (StringUtils.isNullOrEmpty(conversationAndRoleDto.getUserId())) {
             throw new IllegalArgumentException("用户ID（userId）不能为空");
         }
-        Role role = roleMapper.selectById(roleId);
+        Role role = roleMapper.selectById(conversationAndRoleDto.getRoleId());
 
-        if (roleId == null || role == null) {
-            roleId = roleMapper.selectById(DEFAULT_ROLE_ID).getId();
+        if (conversationAndRoleDto.getRoleId() == null || role == null) {
+            conversationAndRoleDto.setRoleId(roleMapper.selectById(DEFAULT_ROLE_ID).getId());
         }
-
         // 2. 创建会话
         Conversation conversation = new Conversation();
-        conversation.setUserId(userId);
-        conversation.setConversationName(conversationName);
+        conversation.setUserId(conversationAndRoleDto.getUserId());
+        conversation.setConversationName(conversationAndRoleDto.getConversationName());
         conversationMapper.insertConversation(conversation);
 
         if (conversation.getId() == null) {
@@ -84,7 +81,7 @@ public class ConversationServiceImpl implements ConversationService {
         // 3. 绑定会话与角色（插入关联关系）
         int relationRows = conversationRoleRelationMapper.insertConversationRoleRelation(
                 conversationId,
-                roleId
+                conversationAndRoleDto.getRoleId()
         );
         if (relationRows != 1) {
             throw new RuntimeException("会话与角色绑定失败");

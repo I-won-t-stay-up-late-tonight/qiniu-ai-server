@@ -3,6 +3,7 @@ package com.qiniuai.chat.web.service;
 //import com.alibaba.dashscope.exception.NoApiKeyException;
 //import com.alibaba.dashscope.exception.UploadFileException;
 
+import com.qiniuai.chat.web.dto.ConversationAndRoleDto;
 import com.qiniuai.chat.web.entity.pojo.Conversation;
 import com.qiniuai.chat.web.entity.pojo.DbMessage;
 
@@ -19,9 +20,9 @@ import java.util.List;
 
 public interface ConversationService {
 
-    Long createConversation(Long userId, String conversationService);
+    Long createConversation(String userId, String conversationService);
 
-    Long createConversationAndRole(Long userId, String conversationName, Long roleId);
+    Long createConversationAndRole(ConversationAndRoleDto conversationAndRoleDto);
 
     List<Conversation> searchConversationByUserId(long userId);
 

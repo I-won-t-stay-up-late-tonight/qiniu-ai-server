@@ -1,6 +1,8 @@
 package com.qiniuai.chat.web.controller;
 
 import com.hnit.server.dto.ApiResult;
+import com.qiniu.util.StringUtils;
+import com.qiniuai.chat.web.dto.ConversationAndRoleDto;
 import com.qiniuai.chat.web.entity.pojo.Conversation;
 import com.qiniuai.chat.web.entity.pojo.DbMessage;
 import com.qiniuai.chat.web.service.ConversationService;
@@ -31,7 +33,7 @@ public class ConversationController {
      */
     @PostMapping("/createConversation")
     public ApiResult<Long> createConversation(
-            @Validated @RequestParam("userId") Long userId, @Validated @RequestParam(value = "conversationName", required = false) String conversationName) {
+            @Validated @RequestParam("userId") String userId, @Validated @RequestParam(value = "conversationName", required = false) String conversationName) {
         if (conversationName == null || conversationName.trim().isEmpty()) {
             conversationName = "默认会话";
         }
@@ -44,12 +46,11 @@ public class ConversationController {
      * 创建会话
      */
     @PostMapping("/createConversationAndRole")
-    public ApiResult<Long> createConversationAndRole(
-            @Validated @RequestParam("userId") Long userId, @Validated @RequestParam(value = "conversationName", required = false) String conversationName, @RequestParam(value = "roleId", required = false)Long roleId) {
-        if (conversationName == null || conversationName.trim().isEmpty()) {
-            conversationName = "默认会话";
+    public ApiResult<Long> createConversationAndRole(@RequestBody ConversationAndRoleDto conversationAndRoleDto) {
+        if (StringUtils.isNullOrEmpty(conversationAndRoleDto.getConversationName())) {
+            conversationAndRoleDto.setConversationName("默认会话");
         }
-        Long res = conversationService.createConversationAndRole(userId, conversationName, roleId);
+        Long res = conversationService.createConversationAndRole(conversationAndRoleDto);
         return res != null ? ApiResult.success(res) : ApiResult.fail("创建失败");
 
     }
