@@ -21,9 +21,9 @@ public interface ConversationService {
 
     String createConversation(Long userId, String conversationService);
 
-    String createConversationAndRole(Long userId, String conversationName, Long roleId);
+    Long createConversationAndRole(Long userId, String conversationName, Long roleId);
 
     List<Conversation> searchConversationByUserId(long userId);
 
-    List<DbMessage> searchHistoryMessage(long userId, String conversationName);
+    List<DbMessage> searchHistoryMessage(long conversationId);
 }
