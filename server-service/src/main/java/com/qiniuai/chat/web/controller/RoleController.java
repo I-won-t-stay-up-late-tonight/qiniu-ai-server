@@ -1,14 +1,15 @@
 package com.qiniuai.chat.web.controller;
 
 import com.hnit.server.dto.ApiResult;
-import com.qiniuai.chat.web.dto.RulesDto;
 import com.qiniuai.chat.web.entity.pojo.Role;
 import com.qiniuai.chat.web.service.RoleService;
+import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 /**
  * @ClassName RoleController
