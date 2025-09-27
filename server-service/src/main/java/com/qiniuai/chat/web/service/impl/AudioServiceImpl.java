@@ -17,18 +17,23 @@ import com.alibaba.dashscope.utils.JsonUtils;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.alibaba.dashscope.aigc.generation.Generation;
+import com.qiniuai.chat.web.entity.Result.ChatResult;
 import com.qiniuai.chat.web.entity.pojo.DbMessage;
 import com.qiniuai.chat.web.mapper.ConversationMapper;
 import com.qiniuai.chat.web.mapper.ConversationRoleRelationMapper;
 import com.qiniuai.chat.web.mapper.MessageMapper;
 import com.qiniuai.chat.web.service.AudioService;
+import com.qiniuai.chat.web.util.OSSUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
 import java.time.LocalDateTime;
 import java.util.*;
 
@@ -64,6 +69,8 @@ public class AudioServiceImpl implements AudioService {
     private final MultiModalConversation conversationClient;
     // 创建ObjectMapper实例
     private ObjectMapper objectMapper = new ObjectMapper();
+
+    private OSSUtil ossUtil;
 
     // 初始化客户端
     public AudioServiceImpl() {
@@ -163,19 +170,23 @@ public class AudioServiceImpl implements AudioService {
                 .languageType("Chinese") // 建议与文本语种一致，以获得正确的发音和自然的语调。
                 .build();
         MultiModalConversationResult result = null;
-        String audioUrl = null;
         try {
+            String audioUrl = null;
             result = conv.call(param);
             audioUrl = result.getOutput().getAudio().getUrl();
+            try (InputStream in = new URL(audioUrl).openStream()) {
+                String ossAudioUrl = ossUtil.uploadInputStream(in, "audio/generated/", ".wav");
+                System.out.println("生成的音频已上传到OSS: " + ossAudioUrl);
+                return ossAudioUrl;
+            }
         } catch (NoApiKeyException e) {
             throw new RuntimeException(e);
         } catch (UploadFileException e) {
             throw new RuntimeException(e);
+        }catch (IOException e) {
+            throw new RuntimeException("处理TTS音频失败", e);
         }
-
-        System.out.println("audioUrl = " + audioUrl);
-
-        // 下载音频文件到本地
+//         下载音频文件到本地
 //        try (InputStream in = new URL(audioUrl).openStream();
 //             FileOutputStream out = new FileOutputStream("downloaded_audio.wav")) {
 //            byte[] buffer = new byte[1024];
@@ -187,21 +198,21 @@ public class AudioServiceImpl implements AudioService {
 //        } catch (Exception e) {
 //            System.out.println("\n下载音频文件时出错: " + e.getMessage());
 //        }
-        return audioUrl != null ? audioUrl : null;
     }
 
     /*
      * @Date 21:33 2025/9/23
-     * @Description //TODO 提升效率
+     * @Description
      * @Author IFundo
      * @conversationId 会话id
      * @content 发送的内容
      *
      */
     @Override
-    public String chat(String content, long conversationId) {
+    public ChatResult chat(String content, long conversationId, String originalAudioUrl) {
         String modelOutput = null;
-
+        Long userMessageId = null;
+        Long assistantMessageId = null;
         try {
             List<Message> messages = loadDbHistoryToLocalMessages(conversationId);
             messages.add(createMessage(Role.USER, content));
@@ -211,21 +222,50 @@ public class AudioServiceImpl implements AudioService {
             log.info("用户输入：" + content);
             log.info("模型输出：" + modelOutput);
             messages.add(result.getOutput().getChoices().get(0).getMessage());
-            saveMessageToDb(conversationId, Role.USER, content);
-            saveMessageToDb(conversationId, Role.ASSISTANT, modelOutput);
+            userMessageId = saveMessageToDb(conversationId, Role.USER, content, originalAudioUrl);
+            assistantMessageId = saveMessageToDb(conversationId, Role.ASSISTANT, modelOutput, "null");
+        } catch (ApiException | NoApiKeyException | InputRequiredException e) {
+            e.printStackTrace();
+        }
+        return new ChatResult(modelOutput, userMessageId, assistantMessageId);
+    }
+
+    @Override
+    public String chatByContent(String content, long conversationId) {
+        String modelOutput = null;
+        Long userMessageId = null;
+        Long assistantMessageId = null;
+        try {
+            List<Message> messages = loadDbHistoryToLocalMessages(conversationId);
+            messages.add(createMessage(Role.USER, content));
+            GenerationParam param = createGenerationParam(messages);
+            GenerationResult result = callGenerationWithMessages(param);
+            modelOutput = result.getOutput().getChoices().get(0).getMessage().getContent();
+            log.info("用户输入：" + content);
+            log.info("模型输出：" + modelOutput);
+            messages.add(result.getOutput().getChoices().get(0).getMessage());
+            userMessageId = saveMessageToDb(conversationId, Role.USER, content, "null");
+            assistantMessageId = saveMessageToDb(conversationId, Role.ASSISTANT, modelOutput, "null");
         } catch (ApiException | NoApiKeyException | InputRequiredException e) {
             e.printStackTrace();
         }
         return modelOutput;
     }
 
-    private void saveMessageToDb(long conversationId, Role role, String content) {
+    private Long saveMessageToDb(long conversationId, Role role, String content, String url) {
         DbMessage dbMsg = new DbMessage();
         dbMsg.setConversationId(conversationId);
         dbMsg.setRole(role.name()); // 枚举转字符串，匹配数据库字段
         dbMsg.setContent(content);
+        dbMsg.setUrl(url);
         dbMsg.setSendTime(LocalDateTime.now());
         messageMapper.insertMessage(dbMsg); // 调用Mapper的插入方法
+        Long generatedId = dbMsg.getId();
+        // 验证ID是否生成（可选）
+        if (generatedId == null) {
+            throw new RuntimeException("Failed to generate message ID");
+        }
+        return generatedId;
     }
     @Async
     public void batchSaveMessageToDb(long conversationId, List<DbMessage> dbMessages) {
@@ -265,13 +305,27 @@ public class AudioServiceImpl implements AudioService {
 
     @Override
     public String audioChat(MultipartFile audio, long id) {
+        // 1. 上传原始音频文件到OSS
+        String originalAudioUrl = ossUtil.uploadMultipartFile(audio, "audio/original/");
+        log.info("原始音频文件已上传到OSS: {}", originalAudioUrl);
+        // 2. 语音识别
         String inputStr = audio2text(audio);
         if (inputStr == null){
             return "解析失败";
         }
-        String resStr = chat(inputStr, id);
-        String resUrl = text2audio(resStr);
-        return resUrl;
+        // 3. 调用LLM
+        ChatResult chatResult = chat(inputStr, id, originalAudioUrl);
+        String resStr = chatResult.getContent();
+        Long assistantMessageId = chatResult.getAssistantMessageId();
+        // 4. 文本转语音
+        String generatedAudioUrl = text2audio(resStr);
+        // 5. 更新助手消息的音频URL
+        if (assistantMessageId != null) {
+            messageMapper.updateAudioUrl(assistantMessageId, generatedAudioUrl);
+            log.info("已更新助手消息的音频URL: {}", generatedAudioUrl);
+        }
+        // 6. 返回生成的音频URL
+        return generatedAudioUrl;
     }
 
     private String jsonTextExtractor(String resJson){

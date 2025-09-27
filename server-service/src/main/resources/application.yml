@@ -148,7 +148,13 @@ ali:
       api-key: sk-95513ded49764ba6a533d427797b6f20
     tts:
       api-key: sk-95513ded49764ba6a533d427797b6f20
-
+aliyun:
+  oss:
+    endpoint: oss-cn-beijing.aliyuncs.com
+    accessKeyId: LTAI5tMmpMphyx8YaDADAUhr
+    accessKeySecret: to6w8cA58mGztKA200CI9cixnq5WKq
+    bucketName: qiniuai
+    customDomain: https://qiniuai.oss-cn-beijing.aliyuncs.com
 # 应用配置
 app:
   # 音频配置

@@ -69,7 +69,7 @@ public class AudioController {
      */
 
     @PostMapping("/chat")
-    @MethodTimer(description = "音频转文字接口1")
+    @MethodTimer(description = "音频转文字接口")
     public ApiResult<String> chat(
             @Validated @RequestParam("content") String content, @Validated @RequestParam("conversationId") long conversationId
     ) {
@@ -78,7 +78,7 @@ public class AudioController {
             return ApiResult.fail("No chat provided");
         }
 
-        String res = audioService.chat(content, conversationId);
+        String res = audioService.chatByContent(content, conversationId);
         return res != null ? ApiResult.success(res) : ApiResult.fail(res);
     }
 

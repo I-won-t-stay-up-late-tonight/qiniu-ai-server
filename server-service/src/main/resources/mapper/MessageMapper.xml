@@ -12,4 +12,11 @@
         </foreach>
     </insert>
 
+    <!-- 在MessageMapper.xml中添加 -->
+    <update id="updateAudioUrl">
+        UPDATE messages
+        SET url = #{url}
+        WHERE id = #{id}
+    </update>
+
 </mapper>
