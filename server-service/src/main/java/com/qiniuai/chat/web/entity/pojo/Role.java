@@ -25,6 +25,8 @@ public class Role {
 
     private String roleDesc;        // 角色描述
 
+    private long userId;  //属于角色的ID
+
     private String personality;     // 性格设定
 
     private String background;      // 背景故事
@@ -35,7 +37,7 @@ public class Role {
 
     private LocalDateTime updateTime;
 
-    private Boolean isBuiltin;      // 是否为内置角色
+    private int isBuiltin;      // 是否为内置角色
 
     private String voice;  //角色声音
 

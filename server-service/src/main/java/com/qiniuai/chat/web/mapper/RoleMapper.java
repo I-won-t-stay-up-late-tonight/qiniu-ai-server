@@ -47,20 +47,25 @@ public interface RoleMapper {
     int insertRole(Role role);
 
 
-    // 新增的查询方法：根据角色名称模糊查询角色列表
+    // 根据角色名称模糊查询角色列表（包含内置角色或符合条件的自定义角色）
     @Select("SELECT " +
             "id, " +
             "role_name AS roleName, " +
             "role_desc AS roleDesc, " +
             "personality, " +
             "background, " +
+            "user_id AS userId, " +
             "avatar_url AS avatarUrl, " +
             "create_time AS createTime, " +
             "update_time AS updateTime, " +
             "is_builtin AS isBuiltin, " +
             "voice " +
             "FROM roles " +
-            "WHERE role_name LIKE CONCAT('%', #{name}, '%') " +
+            "WHERE " +
+            "   (is_builtin = 1 AND role_name LIKE CONCAT('%', #{name}, '%')) " +  // 条件1：内置角色（is_builtin=1）
+            "   OR " +
+            "   (is_builtin = 0 AND role_name LIKE CONCAT('%', #{name}, '%') AND user_id = #{userId} ) " +  // 条件2：非内置角色但名称匹配,属于用户
             "ORDER BY create_time DESC")
-    List<Role> searchRole(String name);
+    List<Role> searchRoleByName(@Param("userId") long userId, @Param("name") String name);  // 添加@Param明确参数名
+
 }

@@ -35,10 +35,15 @@ public class RoleController {
         }
     }
 
-    @GetMapping("/searchRole")
-    public ApiResult<List<Role>> searchRole(@Validated String name) {
+    /*
+     * @Date 21:08 2025/9/26
+     * 搜索角色
+     */
 
-        List<Role> roles = roleService.searchRole(name);
+    @PostMapping("/searchRoleByName")
+    public ApiResult<List<Role>> searchRoleByName(@Validated long userId, @Validated String name) {
+
+        List<Role> roles = roleService.searchRoleByName(userId, name);
         return ApiResult.success(roles);
     }
 

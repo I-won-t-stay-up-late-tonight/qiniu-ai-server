@@ -27,6 +27,7 @@ public class RoleServiceImpl implements RoleService {
         if (role.getVoice() == null || role.getVoice().trim().isEmpty()) {
             role.setVoice("Ethan");
         }
+        role.setIsBuiltin(1);
         int rows = roleMapper.insertRole(role);
         if (rows == 1){
             return true;
@@ -36,8 +37,9 @@ public class RoleServiceImpl implements RoleService {
     }
 
     @Override
-    public List<Role> searchRole(String name) {
-        List<Role> roles = roleMapper.searchRole(name);
+    public List<Role> searchRoleByName(long userId, String name) {
+        List<Role> roles = roleMapper.searchRoleByName(userId, name);
         return roles;
     }
+
 }

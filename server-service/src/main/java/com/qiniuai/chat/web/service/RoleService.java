@@ -19,5 +19,6 @@ public interface RoleService {
 
     boolean createRole(Role role);
 
-    List<Role> searchRole(String name);
+    List<Role> searchRoleByName(long userId, String name);
+
 }
