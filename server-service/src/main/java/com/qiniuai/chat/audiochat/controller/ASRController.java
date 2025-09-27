@@ -1,62 +1,68 @@
 package com.qiniuai.chat.audiochat.controller;
-import com.hnit.server.dto.ApiResult;
+import com.qiniuai.chat.audiochat.entity.ASRResultDTO;
 import com.qiniuai.chat.audiochat.service.ASRService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.multipart.MultipartFile;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
+
 /**
  * 语音识别控制器
  * 处理音频文件上传和实时识别请求
  */
 @RestController
-@RequestMapping("/api/asr")
 public class ASRController {
-    private static final Logger logger = LoggerFactory.getLogger(ASRController.class);
     private final ASRService asrService;
 
-    @Autowired
+    // 构造器注入Service
     public ASRController(ASRService asrService) {
         this.asrService = asrService;
     }
 
     /**
-     * 接收前端上传的录音文件，返回识别结果
+     * 语音识别接口
+     * @param file 音频文件
+     * @return 识别结果及相关信息
      */
-    @PostMapping("/recognize")
-    public ApiResult<Map<String, Object>> recognizeAudio(
-            @RequestParam("audioFile") MultipartFile audioFile) {
+    @PostMapping("/api/asr/recognize")
+    public ResponseEntity<Map<String, Object>> recognizeAudio2(
+            @RequestParam("file") MultipartFile file) {
 
-        CompletableFuture<Map<String, Object>> exceptionally = asrService.recognizeFromMultipartFile(audioFile)
-                .thenApply(recognizedText -> buildResponse(true, "识别成功",
-                        Map.of("text", recognizedText, "filename", audioFile.getOriginalFilename()),
-                        HttpStatus.OK))
-                .exceptionally(ex -> {
-                    logger.error("识别失败", ex);
-                    return buildResponse(false, "识别失败：" + ex.getMessage(), null, HttpStatus.INTERNAL_SERVER_ERROR);
-                });
-        return ApiResult.success(exceptionally.join());
-    }
+        Map<String, Object> result = new HashMap<>();
 
-    /**
-     * 统一响应格式（便于前端解析）
-     */
-    private Map<String, Object> buildResponse(boolean success, String message, Object data, HttpStatus status) {
-        Map<String, Object> response = new HashMap<>();
-        response.put("success", success);
-        response.put("message", message);
-        response.put("data", data);
-        response.put("timestamp", System.currentTimeMillis());
-        response.put("status", status.value());
-        return response;
+        // 验证文件
+        if (file.isEmpty()) {
+            result.put("success", false);
+            result.put("error", "请上传音频文件");
+            return new ResponseEntity<>(result, HttpStatus.BAD_REQUEST);
+        }
+
+        try {
+            // 调用Service层处理业务逻辑
+            ASRResultDTO recognitionResult = asrService.recognizeAudio(file);
+
+            // 构建成功响应
+            result.put("success", true);
+            result.put("fullText", recognitionResult.getFullText());
+            result.put("originalResult", recognitionResult.getOriginalJson());
+
+            return new ResponseEntity<>(result, HttpStatus.OK);
+
+        } catch (IllegalArgumentException e) {
+            // 处理参数错误
+            result.put("success", false);
+            result.put("error", e.getMessage());
+            return new ResponseEntity<>(result, HttpStatus.BAD_REQUEST);
+        } catch (Exception e) {
+            // 处理其他异常
+            result.put("success", false);
+            result.put("error", "识别过程出错: " + e.getMessage());
+            return new ResponseEntity<>(result, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 }
