@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 /**
- * @author Eureka <liangfengyuan1024@gmail.com>
+ * @author jiping-zeng
  * @since 2025/9/27 0:49
  */
 @Slf4j
