@@ -1,5 +1,10 @@
 package com.qiniuai.chat.web.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.extension.conditions.query.LambdaQueryChainWrapper;
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.qiniu.util.StringUtils;
+import com.qiniuai.chat.web.dto.RulesDto;
 import com.qiniuai.chat.web.entity.pojo.Role;
 import com.qiniuai.chat.web.mapper.RoleMapper;
 import com.qiniuai.chat.web.service.RoleService;
@@ -37,7 +42,7 @@ public class RoleServiceImpl implements RoleService {
     }
 
     @Override
-    public List<Role> searchRoleByName(long userId, String name) {
+    public List<Role> searchRoleByName(String userId, String name) {
         List<Role> roles = roleMapper.searchRoleByName(userId, name);
         return roles;
     }
@@ -46,5 +51,10 @@ public class RoleServiceImpl implements RoleService {
     public Role getRoleById(Long roleId) {
         return this.roleMapper.getById(roleId);
     }
+
+//    @Override
+//    public List<Role> queryRole(RulesDto rulesDto) {
+//        return this.roleMapper.selectList(rulesDto);
+//    }
 
 }

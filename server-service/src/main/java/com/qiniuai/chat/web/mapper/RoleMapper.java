@@ -1,4 +1,6 @@
 package com.qiniuai.chat.web.mapper;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.qiniuai.chat.web.dto.RulesDto;
 import org.apache.ibatis.annotations.*;
 import com.qiniuai.chat.web.entity.pojo.Role;
 
@@ -66,7 +68,7 @@ public interface RoleMapper {
             "   OR " +
             "   (is_builtin = 0 AND role_name LIKE CONCAT('%', #{name}, '%') AND user_id = #{userId} ) " +  // 条件2：非内置角色但名称匹配,属于用户
             "ORDER BY create_time DESC")
-    List<Role> searchRoleByName(@Param("userId") long userId, @Param("name") String name);  // 添加@Param明确参数名
+    List<Role> searchRoleByName(@Param("userId") String userId, @Param("name") String name);  // 添加@Param明确参数名
 
     /**
      * 根据角色ID查询角色信息
@@ -77,4 +79,7 @@ public interface RoleMapper {
             "FROM roles " +
             "WHERE id = #{roleId}")
     Role getById(@Param("roleId") Long roleId);
+
+
+//    List<Role> selectList(RulesDto rulesDto);
 }

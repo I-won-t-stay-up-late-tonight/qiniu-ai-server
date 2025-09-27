@@ -91,7 +91,7 @@ public class ConversationServiceImpl implements ConversationService {
     }
 
     @Override
-    public List<Conversation> searchConversationByUserId(long userId) {
+    public List<Conversation> searchConversationByUserId(String userId) {
         List<Conversation> conversations = conversationMapper.searchConversationByUserId(userId);
         return conversations;
     }

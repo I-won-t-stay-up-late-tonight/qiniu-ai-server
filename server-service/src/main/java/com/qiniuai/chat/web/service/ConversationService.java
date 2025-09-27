@@ -24,7 +24,7 @@ public interface ConversationService {
 
     Long createConversationAndRole(ConversationAndRoleDto conversationAndRoleDto);
 
-    List<Conversation> searchConversationByUserId(long userId);
+    List<Conversation> searchConversationByUserId(String userId);
 
     List<DbMessage> searchHistoryMessage(long conversationId);
 }

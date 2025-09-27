@@ -58,7 +58,7 @@ public interface ConversationMapper {
             "FROM conversations " +
             "WHERE user_id = #{userId} " +  // 按用户ID筛选
             "ORDER BY update_time DESC")    // 按更新时间倒序排列，最新的会话在前
-    List<Conversation> searchConversationByUserId(@Param("userId") long userId);
+    List<Conversation> searchConversationByUserId(@Param("userId") String userId);
 
 
     /*

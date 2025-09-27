@@ -1,6 +1,7 @@
 package com.qiniuai.chat.web.controller;
 
 import com.hnit.server.dto.ApiResult;
+import com.qiniuai.chat.web.dto.RulesDto;
 import com.qiniuai.chat.web.entity.pojo.Role;
 import com.qiniuai.chat.web.service.RoleService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,7 +26,7 @@ public class RoleController {
     private RoleService roleService;
 
     @PostMapping("/createRole")
-    public ApiResult<String> createConversation(@Validated Role role) {
+    public ApiResult<String> createConversation(@Validated @RequestBody Role role) {
 
         boolean res = roleService.createRole(role);
         if (res){
@@ -41,10 +42,16 @@ public class RoleController {
      */
 
     @PostMapping("/searchRoleByName")
-    public ApiResult<List<Role>> searchRoleByName(@Validated long userId, @Validated @RequestParam(value = "name", required = false) String name) {
+    public ApiResult<List<Role>> searchRoleByName(@Validated String userId, @Validated @RequestParam(value = "name", required = false) String name) {
 
         List<Role> roles = roleService.searchRoleByName(userId, name);
         return ApiResult.success(roles);
     }
+
+//    @PostMapping("/queryRole")
+//    public ApiResult<List<Role>> queryRole(@RequestBody RulesDto rulesDto) {
+//        List<Role> roles = roleService.queryRole(rulesDto);
+//        return ApiResult.success(roles);
+//    }
 
 }

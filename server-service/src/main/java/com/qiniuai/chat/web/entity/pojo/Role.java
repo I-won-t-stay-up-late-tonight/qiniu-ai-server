@@ -25,7 +25,7 @@ public class Role {
 
     private String roleDesc;        // 角色描述
 
-    private long userId;  //属于角色的ID
+    private String userId;  //属于角色的ID
 
     private String personality;     // 性格设定
 

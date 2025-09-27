@@ -2,6 +2,7 @@ package com.qiniuai.chat.web.service;
 
 //import com.alibaba.dashscope.exception.NoApiKeyException;
 //import com.alibaba.dashscope.exception.UploadFileException;
+import com.qiniuai.chat.web.dto.RulesDto;
 import com.qiniuai.chat.web.entity.pojo.Role;
 
 import java.util.List;
@@ -19,8 +20,10 @@ public interface RoleService {
 
     boolean createRole(Role role);
 
-    List<Role> searchRoleByName(long userId, String name);
+    List<Role> searchRoleByName(String userId, String name);
 
     Role getRoleById(Long roleId);
+
+//    List<Role> queryRole(RulesDto rulesDto);
 
 }

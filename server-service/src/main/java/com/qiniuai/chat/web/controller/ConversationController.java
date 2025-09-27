@@ -60,7 +60,7 @@ public class ConversationController {
      * 搜索会话
      */
     @PostMapping("/searchConversation")
-    public ApiResult<List<Conversation>> searchRole(@Validated long userId) {
+    public ApiResult<List<Conversation>> searchRole(@Validated @RequestParam("userId") String userId) {
 
         List<Conversation> conversations = conversationService.searchConversationByUserId(userId);
         if (conversations.size() != 0){
