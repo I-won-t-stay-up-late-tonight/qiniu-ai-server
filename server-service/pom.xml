@@ -30,12 +30,6 @@
             <artifactId>mybatis-plus</artifactId>
             <version>3.5.3.1</version>
         </dependency>
-        <!-- OpenAI SDK（兼容调用阿里云百炼） -->
-        <dependency>
-            <groupId>openai</groupId>
-            <artifactId>openai-java</artifactId>
-            <version>1.13.0</version>
-        </dependency>
         <!-- https://mvnrepository.com/artifact/com.jayway.jsonpath/json-path -->
         <dependency>
             <groupId>com.jayway.jsonpath</groupId>

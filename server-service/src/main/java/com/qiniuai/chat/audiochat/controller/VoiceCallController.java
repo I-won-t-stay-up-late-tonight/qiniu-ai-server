@@ -1,6 +1,5 @@
 package com.qiniuai.chat.audiochat.controller;
 
-import com.hnit.server.dto.ApiResult;
 import com.qiniuai.chat.audiochat.service.VoiceCallService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
