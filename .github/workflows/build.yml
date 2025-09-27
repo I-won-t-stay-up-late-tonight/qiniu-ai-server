@@ -38,6 +38,7 @@ jobs:
           cd server-start
           mkdir docker
           cp ../app-meta/script/Dockerfile ./docker
+          cp ../app-meta/script/deploy.sh ./docker
           cp ./target/*.jar ./docker
           cd docker
           # 使用Dockerfile构建镜像
@@ -55,6 +56,7 @@ jobs:
           password: ${{ secrets.SSH_PASSWORD }}
           # 执行脚本
           script: |
+            scp deploy.sh ${{ secrets.SSH_USER }}@${{ secrets.SSH_REMOTE_HOST }}:/root/script/deploy.sh
             # 部署脚本 后面的vars是传递给脚本的参数
             sh /root/script/deploy.sh ${{ vars.USER_NAME }} ${{ vars.IMAGE_NAME }} ${{ vars.PORT }} ${{ vars.CONTAINS_PORT }} ${{ vars.hubAddr }} ${{ vars.TAG }}
 
