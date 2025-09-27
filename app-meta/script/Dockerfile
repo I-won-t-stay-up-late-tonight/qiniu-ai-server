@@ -8,6 +8,9 @@ RUN apk add --no-cache tzdata && \
 # 创建应用目录和临时音频目录
 RUN mkdir -p /app/temp-audio /config
 
+# 安装 Arthas
+RUN wget https://arthas.aliyun.com/arthas-boot.jar
+
 # 复制JAR文件
 COPY ./*.jar /app.jar
 
