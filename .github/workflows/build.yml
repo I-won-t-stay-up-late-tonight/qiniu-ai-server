@@ -37,7 +37,7 @@ jobs:
           docker login --username=${{ secrets.DOCKER_HUB_USERNAME }} --password=${{ secrets.DOCKER_PASSWORD }} ${{ vars.hubAddr }}
           cd server-service
           mkdir docker
-          cp ./Dockerfile.amd64 ./docker
+          cp ../app-meta/script/Dockerfile ./docker
           cp ./target/*.jar ./docker
           cd docker
           # 使用Dockerfile构建镜像
