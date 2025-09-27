@@ -18,16 +18,16 @@
         is_builtin AS isBuiltin,
         voice
         FROM roles
-        WHERE
-        <!-- 每个条件前加AND，由where标签处理首个条件的多余AND -->
-        <if test="param.roleId != null">
-            AND id = #{param.roleId}
-        </if>
-        <if test="param.roleName != null and param.roleName != ''">
-            AND role_name LIKE CONCAT('%', #{param.roleName}, '%')
-        </if>
-        <if test="param.userId != null and param.userId != ''">
-            AND user_id = #{param.userId}
-        </if>
+        <where>
+            <if test="param.roleId != null">
+                AND id = #{param.roleId}
+            </if>
+            <if test="param.roleName != null and param.roleName != ''">
+                AND role_name LIKE CONCAT('%', #{param.roleName}, '%')
+            </if>
+            <if test="param.userId != null  and param.userId != ''">
+                AND user_id = #{param.userId}
+            </if>
+        </where>
     </select>
 </mapper>
