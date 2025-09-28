@@ -4,53 +4,36 @@ server:
     context-path: /
 spring:
   datasource:
-    url: jdbc:mysql://154.41.93.132:3306/qiniuchat?useUnicode=true&characterEncoding=utf8&allowPublicKeyRetrieval=true&serverTimezone=Asia/Shanghai&useSSL=false
-    username: root
-    password: D6bZUvZ8cN2JxGIE0WZJ0w==
+    url: jdbc:mysql://${DB_HOST:154.41.93.132}:3306/qiniuchat?useUnicode=true&characterEncoding=utf8&allowPublicKeyRetrieval=true&serverTimezone=Asia/Shanghai&useSSL=false
+    username: ${DB_USER:root}
+    password: ${DB_PASSWORD:}
     driver-class-name: com.mysql.cj.jdbc.Driver
   data:
     mongodb:
-      # MongoDB服务器地址
-      host: 154.41.93.132
-      # 端口号
+      host: ${MONGO_HOST:154.41.93.132}
       port: 27017
-      # 数据库名称
       database: hnit_server
-      # 认证信息（关键）
-      username: root
-      password: "123456"
-      # 认证数据库（默认为admin，若用户名密码在其他数据库创建则需指定）
+      username: ${MONGO_USER:root}
+      password: ${MONGO_PASSWORD:}
       authentication-database: admin
     redis:
-      # Redis服务器地址（默认本地）
-      host: 154.41.93.132
-      # Redis服务器端口（默认6379）
+      host: ${REDIS_HOST:154.41.93.132}
       port: 6379
-      # Redis密码（若未设置密码则留空）
-      password:
-      # 数据库索引（默认0，Redis支持16个数据库，从0开始）
+      password: ${REDIS_PASSWORD:}
       database: 0
-      # 连接超时时间（毫秒）
       timeout: 3000ms
-      # 连接池配置（使用Lettuce，Spring Boot 2.x+默认客户端）
       lettuce:
         pool:
-          # 最大连接数（默认8，根据服务器性能调整）
           max-active: 8
-          # 最大空闲连接数（默认8）
           max-idle: 8
-          # 最小空闲连接数（默认0）
           min-idle: 2
-          # 连接池最大阻塞等待时间（毫秒，-1表示无限制）
           max-wait: 1000ms
-        # 关闭超时时间（毫秒）
         shutdown-timeout: 100ms
-  # RabbitMQ配置
   rabbitmq:
-    host: 154.41.93.132
+    host: ${RABBITMQ_HOST:154.41.93.132}
     port: 5672
-    username: admin
-    password: Aa123456==
+    username: ${RABBITMQ_USER:admin}
+    password: ${RABBITMQ_PASSWORD:}
     listener:
       simple:
         concurrency: 3
@@ -64,120 +47,105 @@ spring:
         max-attempts: 3
         max-interval: 3000
         multiplier: 2
-mybatis:
-  mapper-locations: classpath:mapper/*.xml  # mapper.xml 文件路径（如果用 XML 写 SQL）
-  type-aliases-package: com.qiniuai.chat.demos.web.entity.pojo  # 实体类包路径
 
-#百度tts配置
+mybatis:
+  mapper-locations: classpath:mapper/*.xml
+  type-aliases-package: com.qiniuai.chat.demos.web.entity.pojo
+
 baidu:
   tts:
     app-id: 7080599
-    api-key: rQVaLxr0BZn0xv8Ad6Nzzq70
-    secret-key: AfdR5QpvqyWS07OL43WAMCCH1RtDk8g1
+    api-key: ${BAIDU_API_KEY:}
+    secret-key: ${BAIDU_SECRET_KEY:}
     default:
-      voice: 0 # 默认发音人（0-女声，1-男声）
-      speed: 5 # 默认语速（0-9）
-      pitch: 5 # 默认音调（0-9）
-      volume: 5 # 默认音量（0-9）
-# 讯飞开放平台配置
+      voice: 0
+      speed: 5
+      pitch: 5
+      volume: 5
+
 xunfei:
   tts:
     app-id: eef954cd
-    api-key: 4243b6cacf6c7bff27a16b333cffe247
-    api-secret: N2E0Y2U1NWIzYWQ3MmNjMGIyZGU5YWFh
+    api-key: ${XUNFEI_API_KEY:}
+    api-secret: ${XUNFEI_API_SECRET:}
     host-url: wss://spark-api.xf-yun.com/v4.0/chat
-    # 预设角色映射（键为角色名，值为讯飞语音ID）
     role-mapping:
-      harry-potter: "en_hp"       # 假设的哈利波特语音ID（需替换为实际值）
-      socrates: "en_socrates"     # 假设的苏格拉底语音ID（需替换为实际值）
-      default: "xiaoyan"          # 默认女声
+      harry-potter: "en_hp"
+      socrates: "en_socrates"
+      default: "xiaoyan"
+
 qiniu:
   kodo:
-    access-key: hHXoW4db7Oumj1B_0EwkmmV7BGVcAQxgbo1y-w7q
-    secret-key: ZJ7NpuflHtI8fX4DXwWtZCbLynQ1e0n4ryv7AVuM
+    access-key: ${QINIU_ACCESS_KEY:}
+    secret-key: ${QINIU_SECRET_KEY:}
     bucket-name: hnit-qiniu
     domain: t31wwjckj.sabkt.gdipper.com
-    base-path: tts-audio/ # 音频存储基础路径
+    base-path: tts-audio/
 
-# 第三方服务配置
 third-party:
-  # 阿里云配置
   aliyun:
-    access-key-id: LTAI5tFQZ7WbmkPzioKZfDd7
-    access-key-secret: amLpi3qgnYGiNUHejETMX2ssqoGVPN
+    access-key-id: ${ALIYUN_ACCESS_KEY:}
+    access-key-secret: ${ALIYUN_SECRET:}
     region-id: cn-shanghai
-    # ASR配置
     asr:
-      app-key: sk-91e9869d987d4dccaf03889cc6c33871
+      app-key: ${ALIYUN_ASR_KEY:}
       url: https://nls-gateway.cn-shanghai.aliyuncs.com/stream/v1/asr
       model: paraformer-realtime-8k-v2
       format: mp3
       sample-rate: 8000
       timeout: 30000
-    # TTS配置
     tts:
-      app-key: sk-91e9869d987d4dccaf03889cc6c33871
+      app-key: ${ALIYUN_TTS_KEY:}
       url: https://dashscope.aliyuncs.com/api/v1/services/audio/speech_synthesis
       voice: xiaoyun
       format: mp3
       sample-rate: 16000
       model: qwen3-tts-v1
       timeout: 30000
-
-  # DeepSeek LLM配置
   deepseek:
     url: https://api.deepseek.com/v1/chat/completions
-    api-key: sk-c620dc51a0394439a300c3d257fa435f
+    api-key: ${DEEPSEEK_API_KEY:}
     model: deepseek-chat
     timeout: 60000
     max-tokens: 1024
     temperature: 0.7
-
-  # 科大讯飞音色转换配置
   iflytek:
     app-id: eef954cd
-    api-key: 4243b6cacf6c7bff27a16b333cffe247
-    api-secret: N2E0Y2U1NWIzYWQ3MmNjMGIyZGU5YWFh
+    api-key: ${IFLYTEK_API_KEY:}
+    api-secret: ${IFLYTEK_API_SECRET:}
     voice-conversion:
       url: https://api.xfyun.cn/v1/service/v1/tts/voice_conversion
 
-#阿里语音平台
 ali:
   audio:
     asr:
-      api-key: sk-95513ded49764ba6a533d427797b6f20
+      api-key: ${ALI_AUDIO_KEY:}
     tts:
-      api-key: sk-95513ded49764ba6a533d427797b6f20
-# 阿里云OSS配置
+      api-key: ${ALI_AUDIO_KEY:}
+
 aliyun:
   oss:
     endpoint: oss-cn-beijing.aliyuncs.com
-    accessKeyId: LTAI5tMmpMphyx8YaDADAUhr
-    accessKeySecret: to6w8cA58mGztKA200CI9cixnq5WKq
+    accessKeyId: ${OSS_ACCESS_KEY:}
+    accessKeySecret: ${OSS_SECRET:}
     bucketName: qiniuai
     customDomain: https://qiniuai.oss-cn-beijing.aliyuncs.com
-# 应用配置
 
 app:
-  # 音频配置
   audio:
     temp-dir: ./temp-audio
     chunk-size: 1024
     max-duration-seconds: 60
-    clean-expired-files-cron: 0 0 */1 * * ? # 每小时清理一次过期文件
-
-  # 缓存配置
+    clean-expired-files-cron: 0 0 */1 * * ?
   cache:
     role-info-expire-hours: 24
     conversation-status-expire-minutes: 30
-
-  # WebSocket配置
   websocket:
     endpoint: /ws/voice-call
     broker:
       prefix: /topic
       destination: /queue/voice-response
-# 线程池配置
+
 thread-pool:
   asr:
     core-pool-size: 5
@@ -185,21 +153,18 @@ thread-pool:
     queue-capacity: 50
     keep-alive-seconds: 60
     thread-name-prefix: asr-executor-
-
   llm:
     core-pool-size: 5
     max-pool-size: 10
     queue-capacity: 50
     keep-alive-seconds: 60
     thread-name-prefix: llm-executor-
-
   tts:
     core-pool-size: 5
     max-pool-size: 10
     queue-capacity: 50
     keep-alive-seconds: 60
     thread-name-prefix: tts-executor-
-
   voice-conversion:
     core-pool-size: 5
     max-pool-size: 10
@@ -207,7 +172,6 @@ thread-pool:
     keep-alive-seconds: 60
     thread-name-prefix: voice-conversion-executor-
 
-# RabbitMQ队列配置
 rabbitmq:
   queues:
     audio-merge: audio.merge.queue
@@ -216,10 +180,8 @@ rabbitmq:
     tts-task: tts.task.queue
     voice-conversion-task: voice.conversion.task.queue
     websocket-send: websocket.send.queue
-
   exchanges:
     task-exchange: task.exchange
-
   routing-keys:
     audio-merge: audio.merge.key
     asr-task: asr.task.key
@@ -228,22 +190,19 @@ rabbitmq:
     voice-conversion-task: voice.conversion.key
     websocket-send: websocket.send.key
 
-# 音频文件配置
 audio:
   temp-dir: ./temp-audio
   chunk-size: 1024
-  max-duration: 60 # 最大录音时长(秒)
+  max-duration: 60
   format: mp3
   sample-rate: 8000
 
-
-# 日志配置
 logging:
   level:
-    root: INFO # 根日志级别
-    com.qiniu.chat.demos: DEBUG # 项目包日志级别
+    root: INFO
+    com.qiniu.chat.demos: DEBUG
   file:
-    name: logs/qiniu-ai-service.log # 日志文件路径
+    name: logs/qiniu-ai-service.log
   pattern:
-    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n" # 控制台日志格式
-    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n" # 文件日志格式
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"

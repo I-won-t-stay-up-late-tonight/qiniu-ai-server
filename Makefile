@@ -44,9 +44,12 @@ check-jar:
 	@echo "✓ JAR file check passed"
 
 # Build Docker images
-build: check-jar
+build:
+	@mvn package -Dmaven.test.skip=true
+	@mv server-start/target/$(JAR_FILE) app-meta/script
 	@echo "Building Docker images..."
-	@$(DOCKER_COMPOSE) build --no-cache
+	@cd app-meta/script
+	@docker build . --file Dockerfile --tag qiniu-ai-server:1.0.0
 	@echo "✓ Docker images built successfully"
 
 # Start all services
