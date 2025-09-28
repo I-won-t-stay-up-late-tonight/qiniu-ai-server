@@ -28,6 +28,7 @@ public interface RoleMapper {
     @Insert("INSERT INTO roles (" +
             "role_name, " +          // 角色名称
             "role_desc, " +          // 角色描述
+            "user_id, " +
             "personality, " +       // 性格设定
             "background, " +        // 背景故事
             "avatar_url, " +        // 头像地址
@@ -38,6 +39,7 @@ public interface RoleMapper {
             ") VALUES (" +
             "#{roleName}, " +
             "#{roleDesc}, " +
+            "#{userId}, " +
             "#{personality}, " +
             "#{background}, " +
             "#{avatarUrl}, " +
