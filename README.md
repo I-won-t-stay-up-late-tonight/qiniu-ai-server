@@ -4,7 +4,12 @@
 <h3 id="10d34a4c"><font style="color:rgb(0, 0, 0);">1.1 文档目的</font></h3>
 
 
+演示视频：
+https://cdn.fengxianhub.top/eureka-static/qiniu-ai-server/qiniu-ai.mp4
+
+
 <font style="color:rgba(0, 0, 0, 0.85);">本文档为 “精卫 AI 语音助手” 搭建完整、清晰的架构设计方案，明确系统各模块的功能范围、协作逻辑与技术选择。方案需支撑用户通过文本聊天、语音聊天、语音通话等方式与 AI 角色顺畅互动，同时确保用户管理、角色管理、聊天记录管理等核心功能稳定可靠、易于扩展且安全合规。</font>
+
 
 
 
@@ -202,3 +207,5 @@
 
 
 查看README_START.md
+
+
