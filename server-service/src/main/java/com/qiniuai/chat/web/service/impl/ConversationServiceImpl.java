@@ -98,7 +98,7 @@ public class ConversationServiceImpl implements ConversationService {
 
 
     @Override
-    public List<DbMessage> searchHistoryMessage(long conversationId) {
+    public List<DbMessage> searchHistoryMessage(String conversationId) {
         List<DbMessage> historyMessage = conversationMapper.searchMessageHistory(conversationId);
         return historyMessage;
     }

@@ -76,7 +76,7 @@ public class ConversationController {
      */
     @PostMapping("/searchHistoryMessage")
     public ApiResult<List<DbMessage>> searchHistoryMessage(
-        @Validated @RequestParam(value = "conversationId") Long conversationId) {
+        @Validated @RequestParam(value = "conversationId") String conversationId) {
         List<DbMessage> historyMessage = conversationService.searchHistoryMessage(conversationId);
         return ApiResult.success(historyMessage);
     }

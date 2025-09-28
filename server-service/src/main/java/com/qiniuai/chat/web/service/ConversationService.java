@@ -26,5 +26,5 @@ public interface ConversationService {
 
     List<Conversation> searchConversationByUserId(String userId);
 
-    List<DbMessage> searchHistoryMessage(long conversationId);
+    List<DbMessage> searchHistoryMessage(String conversationId);
 }

@@ -78,7 +78,7 @@ public interface ConversationMapper {
             "WHERE m.conversation_id = #{conversationId} " +
             "ORDER BY m.send_time DESC LIMIT 30 ") // 按消息ID升序排列（也可按时间排序，需表中有时间字段）
     List<DbMessage> searchMessageHistory(
-            @Param("conversationId") long conversationId
+            @Param("conversationId") String conversationId
     );
 }
 
